@@ -1,0 +1,159 @@
+qaqc_data_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR-GLM/BVR-forecast/data_processing
+data_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR-GLM/BVR-forecast/data_processing/qaqc_data
+
+##########################
+# Lake information
+###########################
+
+lake_name_code: bvre
+lake_name: Beaverdam Reservoir
+lake_latitude: 37.31276   #Degrees North
+lake_longitude: -79.81607  #Degrees West
+
+#Time zone that GLM is run in
+#Currently needed to be GMT so that it interfaces with the NOAA forecast
+#reference_tzone <<- "GMT"
+#Local time zone of the lake
+local_tzone: "EST"
+
+##########################
+#  Information required to generate EML metadata file
+##########################
+
+metadata:
+    forecast_project_id: test
+    generate_eml: TRUE
+    abstract: "This is where a longer description of the forest can be added"
+    forecast_title: FLARE
+    intellectualRights: insert license
+    model_description:
+        forecast_model_id: https://github.com/rqthomas/flare/commit/d1ddcb07b9d28863890597503fc4aa4a4496de56
+        name: General Lake Model
+        type: process-based
+        repository: https://github.com/AquaticEcoDynamics/GLM/releases/tag/v3.1.0 #not sure what to set this to - updated GLM on FCR-GLM repo
+    me:
+        individualName:
+              givenName: "Quinn"
+              surName: "Thomas"
+        electronicMailAddress:  "INSERT"
+        id: INSERT ORCID
+
+
+
+############################
+# Run information
+#############################
+
+model_name: glm_aed #other is "null"
+
+base_GLM_nml: glm/configuration_files/glm3.nml
+
+#All sources of uncertainty and data used to constrain
+use_obs_constraint: TRUE
+observation_uncertainty: TRUE
+process_uncertainty: TRUE
+weather_uncertainty: TRUE
+initial_condition_uncertainty: TRUE
+parameter_uncertainty: TRUE
+met_downscale_uncertainty: TRUE
+inflow_process_uncertainty: TRUE
+
+specified_inflow1: BVR-data/BVR-GLM/inputs/BVR_inflow_2014_2019_20200917_allfractions_2poolsDOC_withch4_nldasInflow.csv
+specified_outflow1: BVR-data/BVR-GLM/inputs/BVR_spillway_outflow_2014_2019_20200917_nldasInflow.csv
+
+use_future_inflow: FALSE
+future_inflow_flow_coeff: [0.0010803, 0.9478724, 0.3478991]
+future_inflow_flow_error: 0.00965
+future_inflow_temp_coeff: [0.20291, 0.94214, 0.04278]
+future_inflow_temp_error: 0.943
+
+forecast_met_model: NOAAGEFS_1hr-debias
+forecast_inflow_model: FLOWS-NOAAGEFS-AR1
+#########################
+### Depth information
+#########################
+#Depths used in the EnKF
+#This are the depths that are saved between days
+#Init depth of lake
+lake_depth_init: 13  #not a modeled state
+
+modeled_depths: [0.10, 0.33, 0.67,
+                1.00, 1.33, 1.67,
+                2.00, 2.33, 2.67,
+                3.00, 3.33, 3.67,
+                4.00, 4.33, 4.67,
+                5.00, 5.33, 5.67,
+                6.00, 6.33, 6.67,
+                7.00, 7.33, 7.67,
+                8.00, 8.33, 8.67,
+                9.00, 9.33, 9.67,
+                10.00, 10.33, 10.67,
+                11.00, 11.33, 11.67,
+                12.00. 12.33, 12.67,
+                13.00]
+
+default_temp_init: [4.8132, 4.8021, 4.791, 4.7799, 4.779266667, 4.778633333, 4.778, 4.77235, 4.7667, 4.76105, 4.75195, 4.74285, 4.73375, 4.7358, 4.73785, 4.7399, 4.7376, 4.7353, 4.733, 4.731616667, 4.730233333, 4.72885, 4.723133333, 4.717416667, 4.7117, 4.712833333, 4.713966667, 4.7151, 4.7104, 4.7057, 4.701, 4.700733333, 4.700466667, 4.7002, 4.7002, 4.7002, 4.7002, 4.7002, 4.7002, 4.7002]
+default_temp_init_depths: [0.127, 1.004, 2.005, 3.021, 4.002, 5.004, 6.004, 7.01, 8.001, 9.015, 10.01, 11.01, 12.01, 13.01] #not sure where these come from, but need to update
+the_sals_init: 0.0
+
+default_snow_thickness_init: 0.0
+default_white_ice_thickness_init: 0.0
+default_blue_ice_thickness_init: 0.0
+
+#########
+#  Management
+########
+
+#simulate_sss: TRUE
+#sss_depth: 8.0
+#use_specified_sss: TRUE
+#specified_sss_inflow_file: .na
+#specified_sss_outflow_file: .na
+#forecast_sss_flow: 1000
+#forecast_sss_oxy: 500
+##umol/m3  of oxygen if SSS turned on in forecast
+#sss_fname: manual-data/FCR_SSS_inflow_2013_2020.csv
+#sss_inflow_factor: 0.25
+
+
+
+##############################
+##  EnKF setup
+##############################
+ensemble_size:  221 #221 #441
+localization_distance: .na #distance in meters were covariances in the model error are used
+vert_decorr_length: 5.0
+no_negative_states: TRUE
+assimilate_first_step: FALSE
+
+#################################
+# Parameter calibration information
+#################################
+
+par_file: glm/parameter_calibration_config.csv
+
+#####################################
+###  Observation information
+######################################
+
+obs_config_file: glm/observations_config.csv
+
+#########################################
+###  State information
+#########################################
+
+states_config_file: glm/states_config.csv
+states_config_process_error: glm/states_process_error.csv
+
+#carbon to chlorophyll ratio (mg C/mg chla)
+#12 g/ mole of C vs. X g/ mole of chla
+#Initial concentration of phytoplankton (mmol C/m3)
+# biomass_to_chla <<- c((160/12),(60/12), (60/12))
+
+########################################
+# Dignostics
+#######################################
+
+diagnostics_names:  [extc_coef]
+
+

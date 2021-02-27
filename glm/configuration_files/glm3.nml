@@ -1,0 +1,133 @@
+&glm_setup
+   sim_name = 'BVR'
+   max_layers = 500
+   min_layer_vol = 0.025
+   min_layer_thick = 0.5
+   max_layer_thick = 1.5
+   non_avg = .true.
+/
+&wq_setup
+   wq_lib = 'aed'
+   wq_nml_file = 'aed2/aed2_20200701_2DOCpools.nml'
+   ode_method = 1
+   split_factor = 1
+   bioshade_feedback = .true.
+   repair_state = .true.
+/
+&light
+   light_mode = 0
+   n_bands = 4
+   light_extc = 1, 0.5, 2, 4
+   energy_frac = 0.51, 0.45, 0.035, 0.005
+   Benthic_Imin = 10
+   Kw = 0.15
+/
+&mixing
+   coef_mix_conv = 0.1342857
+   coef_wind_stir = 0.1194286
+   coef_mix_shear = 0.1271429
+   coef_mix_turb = 0.2068571
+   coef_mix_KH = 0.12
+   coef_mix_hyp = 0.2308571
+   deep_mixing = .true.
+   coef_mix_shreq = 0
+/
+&morphometry
+   lake_name = 'Beaverdam'
+   latitude = 37.31276
+   longitude = -79.81607
+   bsn_len = 855.03
+   bsn_wid = 109.46
+   bsn_vals = 46
+   H = 576, 576.3, 576.6, 576.9, 577.2, 577.5, 577.8, 578.1, 578.4, 578.7, 579, 579.3, 579.6, 579.9, 580.2, 580.5, 580.8, 581.1, 581.4, 581.7, 582, 582.3, 582.6, 582.9, 583.2, 583.5, 583.8, 584.1, 584.4, 584.7, 585, 585.3, 585.6, 585.9, 586.2, 586.5, 586.8, 587.1, 587.4, 587.7, 588, 588.3, 588.6, 588.9, 589.2, 589.5
+   A = 0, 2966.476185, 3417.098266, 3943.222265, 8201.749898, 9137.0109, 10083.516114, 18908.696911, 20482.728906, 21898.588973, 35930.572517, 38280.796164, 40097.32227, 42104.235133, 51641.882676, 53959.058794, 56286.074771, 69079.415225, 72100.143538, 74871.418261, 83344.954555, 87375.502914, 90634.540069, 94070.371758, 107069.609564, 111098.635433, 115222.000565, 132627.861799, 137640.432065, 142330.117536, 161556.612776, 167950.184421, 172986.777352, 178517.014158, 203272.260947, 210274.399692, 217393.481004, 273886.355781, 278581.881454, 282911.71991, 289953.276304, 293959.489369, 297845.964104, 301807.90306, 318261.911754, 323872.546042
+/
+&time
+   timefmt = 2
+   start = '2014-01-01 12:00:00'
+   stop = '2019-12-31 12:00:00'
+   dt = 3600
+   num_days = 1
+   timezone = -5
+/
+&output
+   out_dir = 'output'
+   out_fn = 'output'
+   nsave = 24
+/
+&init_profiles
+   num_depths = 41
+   lake_depth = 13
+   the_depths = 0.1, 0.33, 0.66, 1, 1.33, 1.66, 2, 2.33, 2.66, 3, 3.33, 3.66, 4, 4.33, 4.66, 5, 5.33, 5.66, 6, 6.33, 6.66, 7, 7.33, 7.66, 8, 8.33, 8.66, 9, 9.33, 9.66, 10, 10.33, 10.66, 11, 11.33, 11.66, 12, 12.33, 12.66, 13
+   the_temps = 4.8132, 4.8021, 4.791, 4.7799, 4.779266667, 4.778633333, 4.778, 4.77235, 4.7667, 4.76105, 4.75195, 4.74285, 4.73375, 4.7358, 4.73785, 4.7399, 4.7376, 4.7353, 4.733, 4.731616667, 4.730233333, 4.72885, 4.723133333, 4.717416667, 4.7117, 4.712833333, 4.713966667, 4.7151, 4.7104, 4.7057, 4.701, 4.700733333, 4.700466667, 4.7002, 4.7002, 4.7002, 4.7002, 4.7002, 4.7002, 4.7002, 4.7002
+   the_sals = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+   num_wq_vars = 5
+   wq_names = 'NIT_amm','NIT_nit','PHS_frp','OGM_doc','OXY_oxy'
+   wq_init_vals = 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 285, 282, 280, 277, 275, 272, 270, 267, 265, 262, 260, 257, 255, 252, 250, 247, 245, 242, 240, 248, 256, 265, 273, 281, 290, 298, 306, 315, 308, 302, 296, 290, 284, 277, 277, 277, 277, 277, 277, 277, 277, 306, 306, 306, 307, 306, 306, 306, 306, 307, 307, 306, 306, 306, 306, 306, 306, 306, 306, 306, 306, 306, 306, 306, 306, 306, 306, 305, 305, 305, 306, 306, 306, 306, 305, 305, 305, 305, 305, 305, 305, 305
+   snow_thickness = 0
+   white_ice_thickness = 0
+   blue_ice_thickness = 0
+   avg_surf_temp = 5
+   restart_variables = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+/
+&meteorology
+   met_sw = .true.
+   lw_type = 'LW_IN'
+   rain_sw = .false.
+   atm_stab = 0
+   catchrain = .false.
+   rad_mode = 1
+   albedo_mode = 1
+   cloud_mode = 4
+   meteo_fl = 'inputs/BVR_GLM_NLDAS_010113_123119_GMTadjusted.csv'
+   subdaily = .true.
+   wind_factor = 0.7542857
+   sw_factor = 0.7785714
+   lw_factor = 0.79
+   at_factor = 1
+   rh_factor = 1
+   rain_factor = 1
+   cd = 0.0006028571
+   ce = 0.0005471429
+   ch = 0.0006114286
+   rain_threshold = 0.04
+   runoff_coef = 0.2
+   time_fmt = 'YYYY-MM-DD hh:mm:ss'
+/
+&inflow
+   num_inflows = 1
+   names_of_strms = 'combined_inflow'
+   subm_flag = .false.
+   strm_hf_angle = 55
+   strmbd_slope = 0.05
+   strmbd_drag = 0.03
+   inflow_factor = 1
+   inflow_fl = 'inputs/BVR_inflow_2014_2019_20200917_allfractions_2poolsDOC_withch4_nldasInflow.csv'
+   inflow_varnum = 19
+   inflow_vars = 'FLOW','TEMP','SALT','OXY_oxy','NIT_amm','NIT_nit','PHS_frp','OGM_doc','OGM_docr','OGM_poc','OGM_don','OGM_donr','OGM_pon','OGM_dop','OGM_dopr','OGM_pop','CAR_dic','CAR_ch4','SIL_rsi'
+/
+&outflow
+   num_outlet = 1
+   flt_off_sw = .false.
+   outl_elvs = 585.7
+   bsn_len_outl = 855.03
+   bsn_wid_outl = 55.96
+   outflow_fl = 'inputs/BVR_spillway_outflow_2014_2019_20200917_nldasInflow.csv'
+   outflow_factor = 1
+/
+&snowice
+   snow_albedo_factor = 1
+   snow_rho_max = 500
+   snow_rho_min = 100
+/
+&sediment
+   benthic_mode = 2
+   sed_heat_model = 1
+   n_zones = 2
+   zone_heights = 6.7, 13
+   sed_heat_Ksoil = 1.8, 1.8
+   sed_temp_depth = 0.2, 0.2
+   sed_temp_mean = 3.24285714285714, 4.65142857142857
+   sed_temp_amplitude = 2.2, 2.37142857142857
+   sed_temp_peak_doy = 252.828571428571, 252.314285714286
+/
