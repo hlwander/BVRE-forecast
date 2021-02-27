@@ -3,4 +3,5 @@
 .RData
 .Ruserdata
 /EST
+.Rproj.user
 .DS_Store
