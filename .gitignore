@@ -1,5 +1,6 @@
-.Rproj.user
+/BVRE-forecast.Rproj
 .Rhistory
 .RData
 .Ruserdata
 /EST
+.DS_Store
