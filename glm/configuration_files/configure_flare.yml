@@ -1,5 +1,5 @@
-qaqc_data_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR-GLM/BVR-forecast/data_processing
-data_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR-GLM/BVR-forecast/data_processing/qaqc_data
+qaqc_data_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVRE-forecast/data_processing/qaqc_data
+data_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVR-forecast/BVRE-data
 
 ##########################
 # Lake information

@@ -1,4 +1,4 @@
-#lake_directory <- getwd()
+lake_directory <- getwd()
 
 config <- yaml::read_yaml(file.path(lake_directory, "data_processing/observation_processing.yml"))
 

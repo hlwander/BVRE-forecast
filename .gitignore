@@ -1,7 +1,9 @@
-/BVRE-forecast.Rproj
+.Rproj
 .Rhistory
 .RData
 .Ruserdata
 /EST
 .Rproj.user
 .DS_Store
+/working_directory
+/BVRE-data

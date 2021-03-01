@@ -1,4 +1,4 @@
-#set fo4recast directory
+#set forecast directory
 forecast_location <- file.path(lake_directory, "glm")
 
 config <- yaml::read_yaml(file.path(forecast_location, "configuration_files","configure_flare.yml"))
@@ -7,7 +7,7 @@ run_config <- yaml::read_yaml(file.path(forecast_location, "configuration_files"
 config$run_config <- run_config
 config$run_config$forecast_location <- forecast_location
 config$data_location <- file.path(lake_directory,"BVRE-data")
-config$qaqc_data_location <- file.path(lake_directory,"qaqc_data")
+#config$qaqc_data_location <- file.path(lake_directory,"/qaqc_data")
 
 # Set up timings
 start_datetime_local <- lubridate::as_datetime(paste0(config$run_config$start_day_local," ",config$run_config$start_time_local), tz = config$local_tzone)
@@ -32,7 +32,7 @@ source(paste0(lake_directory, "/inflow_outflows/forecast_inflow_outflows.R"))
 # Forecast Inflows
 
 forecast_files <- list.files(noaa_forecast_path, full.names = TRUE)
-forecast_inflows_outflows(inflow_obs = file.path(config$qaqc_data_location, "/inflow_postQAQC.csv"),
+forecast_inflows_outflows(inflow_obs = file.path(config$qaqc_data_location, "inflow_postQAQC.csv"),
                           forecast_files = forecast_files,
                           obs_met_file = file.path(config$qaqc_data_location,"observed-met_fcre.nc"),
                           output_dir = config$data_location,
