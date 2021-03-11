@@ -1,4 +1,5 @@
 #set forecast directory
+lake_directory <- getwd()
 forecast_location <- file.path(lake_directory, "glm")
 
 config <- yaml::read_yaml(file.path(forecast_location, "configuration_files","configure_flare.yml"))
@@ -25,7 +26,7 @@ end_datetime_UTC <-  lubridate::with_tz(end_datetime_local, tzone = "UTC")
 forecast_start_datetime_UTC <- lubridate::with_tz(forecast_start_datetime_local, tzone = "UTC")
 forecast_hour <- lubridate::hour(forecast_start_datetime_UTC)
 if(forecast_hour < 10){forecast_hour <- paste0("0",forecast_hour)}
-noaa_forecast_path <- file.path(config$data_location, config$forecast_met_model,config$lake_name_code,lubridate::as_date(forecast_start_datetime_UTC),forecast_hour)
+noaa_forecast_path <- file.path(config$data_location, config$forecast_met_model,"fcre",lubridate::as_date(forecast_start_datetime_UTC),forecast_hour)
 
 message("Forecasting inflow and outflows")
 source(paste0(lake_directory, "/inflow_outflows/forecast_inflow_outflows.R"))
@@ -39,3 +40,4 @@ forecast_inflows_outflows(inflow_obs = file.path(config$qaqc_data_location, "inf
                           inflow_model = config$forecast_inflow_model,
                           inflow_process_uncertainty = FALSE,
                           forecast_location = config$run_config$forecast_location)
+

@@ -3,7 +3,7 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
 
   config <- yaml::read_yaml(file.path(forecast_location, "configuration_files","configure_flare.yml"))
 
-  inflow <- readr::read_csv(inflow_obs, col_types = readr::cols())
+  inflow <- readr::read_csv(inflow_obs, col_types = readr::cols()) 
 
   lake_name_code <- config$lake_name_code
   local_tzone <- config$local_tzone
@@ -28,7 +28,7 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   run_cycle <- lubridate::hour(noaa_met_time[1])
   if(run_cycle < 10){run_cycle <- paste0("0",run_cycle)}
 
-  run_dir <- file.path(output_dir, inflow_model, lake_name_code, run_date, run_cycle)
+  run_dir <- file.path(output_dir, inflow_model, lake_name_code, run_date, run_cycle) 
 
   if(!dir.exists(run_dir)){
     dir.create(run_dir, recursive = TRUE)
@@ -39,11 +39,11 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   met <- tibble::tibble(time = obs_met_time,
                         AirTemp = AirTemp,
                         Rain = Rain)
-  obs_met <- met %>%
-    dplyr::filter(time >= noaa_met_time[1] - lubridate::days(1) & time < noaa_met_time[1])
+  obs_met <- met %>% 
+    dplyr::filter(time >= (noaa_met_time[1] - lubridate::days(1)) & time < noaa_met_time[1])
 
   init_flow_temp <- inflow %>%
-    filter(time == lubridate::as_date(noaa_met_time[1]) - lubridate::days(1))
+    dplyr::filter(time == lubridate::as_date(noaa_met_time[1]) - lubridate::days(1))
 
   for(j in 1:length(forecast_files)){
 
@@ -79,8 +79,8 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
       dplyr::mutate(FLOW = NA,
                     TEMP = NA)
 
-    curr_met_daily$FLOW[1] <- init_flow_temp$FLOW
-    curr_met_daily$TEMP[1] <- init_flow_temp$TEMP
+   # curr_met_daily$FLOW[1] <- init_flow_temp$FLOW
+   # curr_met_daily$TEMP[1] <- init_flow_temp$TEMP
 
     if(inflow_process_uncertainty == TRUE){
       inflow_error <- rnorm(nrow(curr_met_daily), 0, config$future_inflow_flow_error)
@@ -90,15 +90,21 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
       temp_error <- rep(0.0, nrow(curr_met_daily))
     }
 
-    for(i in 2:nrow(curr_met_daily)){
-      curr_met_daily$FLOW[i] = config$future_inflow_flow_coeff[1] +
-        config$future_inflow_flow_coeff[2] * curr_met_daily$FLOW[i - 1] +
-        config$future_inflow_flow_coeff[3] * curr_met_daily$Rain_lag1[i] + inflow_error[i]
-      curr_met_daily$TEMP[i] = config$future_inflow_temp_coeff[1] +
-        config$future_inflow_temp_coeff[2] * curr_met_daily$TEMP[i-1] +
-        config$future_inflow_temp_coeff[3] * curr_met_daily$AirTemp_lag1[i] + temp_error[i]
-    }
+    #for(i in 2:nrow(curr_met_daily)){ #add TMWB model here
+      #curr_met_daily$FLOW[i] =                                       #config$future_inflow_flow_coeff[1] +
+                                                                     #config$future_inflow_flow_coeff[2] * curr_met_daily$FLOW[i - 1] +
+                                                                     #config$future_inflow_flow_coeff[3] * curr_met_daily$Rain_lag1[i] + inflow_error[i]
+   #   curr_met_daily$TEMP[i] = config$future_inflow_temp_coeff[1] +
+   #     config$future_inflow_temp_coeff[2] * curr_met_daily$TEMP[i-1] +
+   #     config$future_inflow_temp_coeff[3] * curr_met_daily$AirTemp_lag1[i] + temp_error[i]
+   # }
 
+    #convert inflow time to posixct format
+    inflow$time <- as.Date(inflow$time)
+    
+    curr_met_daily$FLOW =  inflow$FLOW[match(curr_met_daily$time,inflow$time)]
+    curr_met_daily$TEMP =  inflow$TEMP[match(curr_met_daily$time,inflow$time)]
+    
     curr_met_daily <- curr_met_daily %>%
       dplyr::mutate(FLOW = ifelse(FLOW < 0.0, 0.0, FLOW))
 
@@ -137,3 +143,4 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   }
   return(run_dir)
 }
+

@@ -107,11 +107,10 @@ inflow_qaqc <- function(realtime_file,
 #           SALT = ifelse(is.na(SALT.x), SALT.y, SALT.x)) %>%
 #    select(time, FLOW, TEMP, SALT)
 
-# read in calculated inflow csv, only select some cols, and change time to DateTime
+# read in calculated inflow csv, only select some cols
 inflow_combined <- read.csv(paste0(config$data_location, "/BVR-GLM/inputs/BVR_inflow_2014_2019_20200708_allfractions_2poolsDOC_withch4.csv")) %>%
                     select(time,FLOW,TEMP,SALT)
-colnames(inflow_combined)[1] <- "DateTime"
-inflow_combined$DateTime <- as.Date(inflow_combined$DateTime)
+inflow_combined$time <- as.Date(inflow_combined$time)
 
   #### BRING IN THE NUTRIENTS
 
@@ -119,8 +118,8 @@ inflow_combined$DateTime <- as.Date(inflow_combined$DateTime)
 
     nutrients <- read_csv(nutrients_file, guess_max = 100000, col_types = readr::cols()) %>%
       filter(Reservoir == "BVR" & (Site == "100" | Site == "200")) %>%
-      ##rename("time" = DateTime)  %>%
-      mutate(DateTime = as_date(DateTime)) %>%
+      rename("time" = DateTime)  %>%
+      mutate(time = as_date(time)) %>%
       mutate(NIT_amm = NH4_ugL*1000*0.001*(1/18.04),
              NIT_nit =  NO3NO2_ugL*1000*0.001*(1/62.00),
              PHS_frp = SRP_ugL*1000*0.001*(1/94.9714),
@@ -139,48 +138,48 @@ inflow_combined$DateTime <- as.Date(inflow_combined$DateTime)
              #CAR_dic = DIC_mgL*1000*(1/52.515),
              #CAR_ch4 = 0.0,
              SIL_rsi = 126.3866) %>%
-      select(DateTime, NIT_amm, NIT_nit, PHS_frp, OGM_doc, OGM_docr, OGM_poc, OGM_don,OGM_donr, OGM_dop, OGM_dopr, OGM_pop, OGM_pon,SIL_rsi)
+      select(time, NIT_amm, NIT_nit, PHS_frp, OGM_doc, OGM_docr, OGM_poc, OGM_don,OGM_donr, OGM_dop, OGM_dopr, OGM_pop, OGM_pon,SIL_rsi)
 
     #add temp and oxy to the inflow dataframe
-    temp <- read.csv(paste0(config$data_location,"/BVR-GLM/field_data/CleanedObsTemp.csv"))
-    oxy <- read.csv(paste0(config$data_location,"/BVR-GLM/field_data/CleanedObsOxy.csv"))
-    temp_oxy <- left_join(temp,oxy, by="DateTime") %>%
-                  mutate(DateTime = as_date(DateTime)) 
-    inflow_combined <- left_join(inflow_combined,temp_oxy,by="DateTime")
+    temp <- read.csv(paste0(config$data_location,"/BVR-GLM/field_data/CleanedObsTemp.csv")) %>% rename("time" = DateTime)
+    oxy <- read.csv(paste0(config$data_location,"/BVR-GLM/field_data/CleanedObsOxy.csv"))  %>% rename("time" = DateTime)
+    temp_oxy <- left_join(temp,oxy, by="time") %>%
+                  mutate(time = as_date(time)) 
+    inflow_combined <- left_join(inflow_combined,temp_oxy,by="time")
     
-    inflow_combined_with_na <- left_join(inflow_combined, nutrients, by = "DateTime") %>%
+    inflow_combined_with_na <- left_join(inflow_combined, nutrients, by = "time") %>%
       mutate(OXY_oxy = rMR::Eq.Ox.conc(TEMP, elevation.m = 506,
                                   bar.press = NULL, bar.units = NULL,
                                   out.DO.meas = "mg/L",
                                   salinity = 0, salinity.units = "pp.thou")*1000*(1/32)) %>%
-      mutate(NIT_amm = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(NIT_amm), NA),
-             NIT_nit = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(NIT_nit), NA),
-             PHS_frp = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(PHS_frp), NA),
-             OGM_doc = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(OGM_doc), NA),
-             OGM_docr = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(OGM_docr), NA),
-             OGM_poc = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(OGM_poc), NA),
-             OGM_don = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(OGM_don), NA),
-             OGM_donr = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(OGM_donr), NA),
-             OGM_dop = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(OGM_dop), NA),
-             OGM_dopr = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(OGM_dopr), NA),
-             OGM_pop = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(OGM_pop), NA),
-             OGM_pon = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(OGM_pon), NA),
+      mutate(NIT_amm = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(NIT_amm), NA),
+             NIT_nit = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(NIT_nit), NA),
+             PHS_frp = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(PHS_frp), NA),
+             OGM_doc = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(OGM_doc), NA),
+             OGM_docr = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(OGM_docr), NA),
+             OGM_poc = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(OGM_poc), NA),
+             OGM_don = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(OGM_don), NA),
+             OGM_donr = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(OGM_donr), NA),
+             OGM_dop = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(OGM_dop), NA),
+             OGM_dopr = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(OGM_dopr), NA),
+             OGM_pop = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(OGM_pop), NA),
+             OGM_pon = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(OGM_pon), NA),
              #PHS_frp_ads = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), na_interpolation(PHS_frp_ads), NA),
              #CAR_dic = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), na_interpolation(CAR_dic), NA),
              #CAR_ch4 = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), na_interpolation(CAR_ch4), NA),
-             SIL_rsi = ifelse(DateTime <= last(nutrients$DateTime) & DateTime >= first(nutrients$DateTime), imputeTS::na_interpolation(SIL_rsi), NA)
+             SIL_rsi = ifelse(time <= last(nutrients$time) & time >= first(nutrients$time), imputeTS::na_interpolation(SIL_rsi), NA)
       ) %>%
-      mutate(OGM_dop = ifelse(DateTime > as_date("2013-09-01") & DateTime < as_date("2015-01-01"), NA, OGM_dop),
-             OGM_dopr = ifelse(DateTime > as_date("2013-09-01") & DateTime < as_date("2015-01-01"), NA, OGM_dopr),
-             OGM_pop = ifelse(DateTime > as_date("2013-09-01") & DateTime < as_date("2015-01-01"), NA, OGM_pop))
+      mutate(OGM_dop = ifelse(time > as_date("2013-09-01") & time < as_date("2015-01-01"), NA, OGM_dop),
+             OGM_dopr = ifelse(time > as_date("2013-09-01") & time < as_date("2015-01-01"), NA, OGM_dopr),
+             OGM_pop = ifelse(time > as_date("2013-09-01") & time < as_date("2015-01-01"), NA, OGM_pop))
 
     nutrients_monthly <- nutrients %>%
-      mutate(month = month(DateTime)) %>%
+      mutate(month = month(time)) %>%
       group_by(month) %>%
       summarise_at(vars(NIT_amm:SIL_rsi), mean, na.rm = TRUE, .groups = "drop")
 
     inflow_clean <- inflow_combined_with_na %>%
-      mutate(month = month(DateTime)) %>%
+      mutate(month = month(time)) %>%
       left_join(nutrients_monthly, by = "month") %>%
       mutate(NIT_amm = ifelse(is.na(NIT_amm.x), NIT_amm.y,NIT_amm.x),
              NIT_nit = ifelse(is.na(NIT_nit.x), NIT_nit.y,NIT_nit.x),
@@ -198,7 +197,7 @@ inflow_combined$DateTime <- as.Date(inflow_combined$DateTime)
              #CAR_dic = ifelse(is.na(CAR_dic.x), CAR_dic.y,CAR_dic.x)) %>%
       #CAR_ch4 = ifelse(is.na(CAR_ch4.x), CAR_ch4.y,CAR_ch4.x),
              SIL_rsi = ifelse(is.na(SIL_rsi.x), SIL_rsi.y,SIL_rsi.x))  %>%
-      select(DateTime, FLOW,TEMP,SALT,OXY_oxy, SIL_rsi, NIT_amm,NIT_nit,PHS_frp,OGM_doc,OGM_docr,OGM_poc,OGM_don,OGM_donr,OGM_pon,OGM_dop,OGM_dopr,OGM_pop)
+      select(time, FLOW,TEMP,SALT,OXY_oxy, SIL_rsi, NIT_amm,NIT_nit,PHS_frp,OGM_doc,OGM_docr,OGM_poc,OGM_don,OGM_donr,OGM_pon,OGM_dop,OGM_dopr,OGM_pop)
 
   }else{
     inflow_clean <- inflow_combined
