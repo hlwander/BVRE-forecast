@@ -5,7 +5,7 @@ run_config <- yaml::read_yaml(file.path(forecast_location, "configuration_files"
 config$run_config <- run_config
 config$run_config$forecast_location <- forecast_location
 config$data_location <- file.path(lake_directory,"BVRE-data")
-#config$qaqc_data_location <- qaqc_data_location
+config$qaqc_data_location <- file.path(lake_directory,"data_processing/qaqc_data")
 
 # Set up timings
 start_datetime_local <- lubridate::as_datetime(paste0(config$run_config$start_day_local," ",config$run_config$start_time_local), tz = config$local_tzone)
@@ -50,11 +50,9 @@ if(length(forecast_files) > 0){
   config$run_config <- run_config
   config$run_config$forecast_location <- forecast_location
 
-  if(!dir.exists(paste0(getwd(),config$run_config$execute_location))){
-    dir.create(paste0(getwd(),config$run_config$execute_location))
+  if(!dir.exists(config$run_config$execute_location)){
+    dir.create(config$run_config$execute_location)
   }
-
-  config$data_location <- file.path(lake_directory,"BVRE-data")
 
   pars_config <- readr::read_csv(file.path(config$run_config$forecast_location, "configuration_files", config$par_file), col_types = readr::cols())
   obs_config <- readr::read_csv(file.path(config$run_config$forecast_location, "configuration_files", config$obs_config_file), col_types = readr::cols())
@@ -88,7 +86,7 @@ if(length(forecast_files) > 0){
   forecast_path <- file.path(config$data_location, "NOAAGEFS_1hr",config$lake_name_code,lubridate::as_date(forecast_start_datetime_UTC),forecast_hour)
 
   met_out <- flare::generate_glm_met_files(obs_met_file = observed_met_file,
-                                                  out_dir = paste0(getwd(),config$run_config$execute_location),
+                                                  out_dir = config$run_config$execute_location,
                                                   forecast_dir = noaa_forecast_path,
                                                   local_tzone = config$local_tzone,
                                                   start_datetime_local = start_datetime_local,
@@ -104,7 +102,7 @@ if(length(forecast_files) > 0){
 
   inflow_outflow_files <- flare::create_glm_inflow_outflow_files(inflow_file_dir = inflow_forecast_path, 
                                                                  inflow_obs = cleaned_inflow_file,
-                                                                 working_directory = paste0(lake_directory, config$run_config$execute_location),
+                                                                 working_directory =config$run_config$execute_location,
                                                                  start_datetime_local = start_datetime_local,
                                                                  end_datetime_local = end_datetime_local,
                                                                  forecast_start_datetime_local = forecast_start_datetime_local,
@@ -115,9 +113,9 @@ if(length(forecast_files) > 0){
   outflow_file_names <-config$specified_outflow1
 
   #Create observation matrix
-  obs <- flare::create_obs_matrix(cleaned_observations_file_long, #note to self - I manually changed the observations_postQAQC_long and changed all 7/18 observations to 7/27
-                                  obs_config,                     #still figuring this out - currently produces an empty matrix of obs
-                                  start_datetime_local,
+  obs <- create_obs_matrix_hlw(cleaned_observations_file_long, #note to self - I manually changed the observations_postQAQC_long and changed all 7/11 observations to 7/27
+                                  obs_config,                     
+                                  start_datetime_local,           
                                   end_datetime_local,
                                   local_tzone = config$local_tzone,
                                   modeled_depths = config$modeled_depths)
@@ -207,3 +205,4 @@ if(length(forecast_files) > 0){
   run_config$forecast_start_day_local <- as.character(lubridate::as_date(run_config$forecast_start_day_local) + lubridate::days(1))
   yaml::write_yaml(run_config, file = file.path(forecast_location, "configuration_files","run_configuration.yml"))
 }
+

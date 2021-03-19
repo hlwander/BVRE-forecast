@@ -1,4 +1,4 @@
-restart_file: /glm/output.nc
+restart_file: .na
 start_day_local: '2019-07-27'
 start_time_local: '19:00:00'
 end_day_local: .na
@@ -7,5 +7,5 @@ forecast_horizon: 16.0
 forecast_project_id: bvre_flare
 sim_name: bvre
 forecast_sss_on: no
-forecast_location: /glm
-execute_location: /working_directory
+forecast_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVRE-forecast/BVRE-data/NOAAGEFS_1hr/bvre
+execute_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVRE-forecast/working_directory

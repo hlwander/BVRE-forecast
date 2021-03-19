@@ -46,9 +46,13 @@ extract_CTD <- function(fname,
     mutate(method = "ctd") %>%
     select(timestamp , depth, value, variable, method) %>%
     mutate(timestamp = lubridate::as_datetime(timestamp, tz = local_tzone))
+  
+  #add hour to 2019 data
+  #  d_ctd <- d_ctd %>% mutate(timestamp = as.POSIXct(strptime(timestamp,"%Y-%m-%d"),formt="%Y-%m-%d %H:%M:%S")) %>%
+   #   mutate(timestamp =  as.POSIXct(paste(timestamp,"12:00:00"), format="%Y-%m-%d %H:%M:%S"))
 
   if(!is.na(focal_depths)){
-    d_ctd <- d_ctd %>% filter(depth %in% focal_depths)
+    d_ctd <- d_ctd  %>% filter(depth %in% focal_depths)
   }
 
   return(d_ctd)

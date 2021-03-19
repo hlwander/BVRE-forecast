@@ -8,7 +8,7 @@ run_config <- yaml::read_yaml(file.path(forecast_location, "configuration_files"
 config$run_config <- run_config
 config$run_config$forecast_location <- forecast_location
 config$data_location <- file.path(lake_directory,"BVRE-data")
-#config$qaqc_data_location <- file.path(lake_directory,"/qaqc_data")
+config$qaqc_data_location <- file.path(lake_directory,"data_processing/qaqc_data")
 
 # Set up timings
 start_datetime_local <- lubridate::as_datetime(paste0(config$run_config$start_day_local," ",config$run_config$start_time_local), tz = config$local_tzone)

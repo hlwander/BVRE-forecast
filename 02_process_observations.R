@@ -42,7 +42,6 @@ if(is.null(config$inflow1_file)){
   file.copy(file.path(config$data_location,config$inflow1_file), cleaned_inflow_file, overwrite = TRUE)
 }
 
-
 cleaned_observations_file_long <- paste0(config$qaqc_data_location,
                                          "/observations_postQAQC_long.csv")
 if(is.null(config$combined_obs_file)){

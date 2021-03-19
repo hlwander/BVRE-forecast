@@ -10,8 +10,8 @@ in_situ_qaqc <- function(insitu_obs_fname,
 
   print("QAQC BVR sensors")
 
-  d <- temp_oxy_chla_qaqc(realtime_file = insitu_obs_fname,
-                          #qaqc_file = insitu_obs_fname,
+  d <- temp_oxy_chla_qaqc(realtime_file = insitu_obs_fname[1],
+                          qaqc_file = insitu_obs_fname[2],
                           maintenance_file = maintenance_file,
                           input_file_tz = "EST",
                           focal_depths= config$focal_depths,
@@ -73,7 +73,7 @@ in_situ_qaqc <- function(insitu_obs_fname,
 
     d_curr <- d %>%
       dplyr::filter(variable == config$target_variable[i],
-                    method %in% config$measurement_methods[[i]]) %>%
+                    method %in% config$measurement_methods[[i]]) %>% #NOTE, ADDED CTD AS METHOD SO WE HAVE TEMP AND DO DATA BEFORE 2020
       dplyr::mutate(time_class = cut(timestamp, breaks = time_breaks, labels = FALSE)) %>%
       dplyr::group_by(time_class, depth) %>%
       dplyr::summarize(value = mean(value, na.rm = TRUE), .groups = "drop") %>%

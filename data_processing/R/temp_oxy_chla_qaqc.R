@@ -1,35 +1,31 @@
 temp_oxy_chla_qaqc <- function(realtime_file,
-                               #qaqc_file,
+                               qaqc_file,
                                maintenance_file,
                                input_file_tz,
                                focal_depths,
                                local_tzone,
                                config){
 
-  CATDATA_COL_NAMES <- c("Reservoir", "Site", "DateTime","ThermistorTemp_C_surface","ThermistorTemp_C_1", "ThermistorTemp_C_2", 
+  CATDATA_COL_NAMES <- c("DateTime", "RECORD", "CR6_Batt_V", "CR6Panel_Temp_C", "ThermistorTemp_C_1", "ThermistorTemp_C_2", 
                          "ThermistorTemp_C_3", "ThermistorTemp_C_4","ThermistorTemp_C_5", "ThermistorTemp_C_6", 
                          "ThermistorTemp_C_7", "ThermistorTemp_C_8","ThermistorTemp_C_9", "ThermistorTemp_C_10",
                          "ThermistorTemp_C_11", "ThermistorTemp_C_12","ThermistorTemp_C_13", "RDO_mgL_6", "RDOsat_percent_6", 
-                         "RDOTemp_C_6", "RDO_mgL_13","RDOsat_percent_13", "RDOTemp_C_13", "Lvl_psi_13", "Depth_m_13", 
-                         "LvlTemp_C_13" , "EXOTemp_C_1_5", "EXOCond_uScm_1_5", "EXOSpCond_uScm_1_5", "EXOTDS_mgL_1_5", 
-                         "EXODOsat_percent_1_5", "EXODO_mgL_1_5", "EXOChla_RFU_1_5", "EXOChla_ugL_1_5", "EXOBGAPC_RFU_1_5", 
-                         "EXOBGAPC_ugL_1_5", "EXOfDOM_RFU_1_5", "EXOfDOM_QSU_1_5", "EXO_pressure_1_5", "EXO_depth", 
-                         "EXO_battery", "EXO_cablepower", "EXO_wiper", "RECORD", "CR6_Batt_V", "CR6Panel_Temp_C","Flag_All",
-                         "Flag_Temp_1","Flag_Temp_2","Flag_Temp_3","Flag_Temp_4","Flag_Temp_5","Flag_Temp_6","Flag_Temp_7",
-                         "Flag_Temp_8","Flag_Temp_9","Flag_Temp_10","Flag_Temp_11","Flag_Temp_12","Flag_Temp_13","Flag_DO_1_5",
-                         "Flag_DO_6","Flag_DO_13","Flag_Lvl_13","Flag_Chla","Flag_Phyco","Flag_TDS","Flag_fDOM","Flag_Cond")
+                         "RDOTemp_C_6", "RDO_mgL_13","RDOsat_percent_13", "RDOTemp_C_13", "EXO_Date", "EXO_Time",
+                         "EXOTemp_C_1", "EXOCond_uScm_1", "EXOSpCond_uScm_1", "EXOTDS_mgL_1", "EXODOsat_percent_1", 
+                         "EXODO_mgL_1", "EXOChla_RFU_1", "EXOChla_ugL_1", "EXOBGAPC_RFU_1", "EXOBGAPC_ugL_1", "EXOfDOM_RFU_1", 
+                         "EXOfDOM_QSU_1", "EXO_pressure", "EXO_depth", "EXO_battery", "EXO_cablepower", "EXO_wiper", "Lvl_psi", "wtr_pt_13")
 
   # after maintenance, DO values will continue to be replaced by NA until DO_mgL returns within this threshold (in mg/L)
   # of the pre-maintenance value
   DO_RECOVERY_THRESHOLD <- 1
 
   # columns where certain values are stored
-  DO_MGL_COLS <- c(31, 17, 20)
-  DO_SAT_COLS <- c(30, 18, 21)
-  DO_FLAG_COLS <- c(60, 61, 62)
+  DO_MGL_COLS <- c(31, 18, 21)
+  DO_SAT_COLS <- c(30, 19, 22)
+  DO_FLAG_COLS <- c(46,47,48)
 
   # depths at which DO is measured
-  DO_DEPTHS <- c(1.5, 6, 13)
+  DO_DEPTHS <- c(1, 6, 13)
 
   # EXO sonde sensor data that differs from the mean by more than the standard deviation multiplied by this factor will
   # either be replaced with NA and flagged (if between 2018-10-01 and 2019-03-01) or just flagged (otherwise)
@@ -37,16 +33,14 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   # read catwalk data and maintenance log
   # NOTE: date-times throughout this script are processed as UTC
-  catdata <- readr::read_csv(realtime_file, skip = 1, col_names = CATDATA_COL_NAMES, 
-                      col_types = readr::cols(.default = readr::col_double(), 
-                      Reservoir = readr::col_character(),DateTime = readr::col_datetime())) %>%
-    select(-c(Reservoir,Site)) #drop reservoir and site cols because cause problems later on
+  catdata <- readr::read_csv(realtime_file, skip = 4, col_names = CATDATA_COL_NAMES, 
+                      col_types = readr::cols(.default = readr::col_double(), DateTime = readr::col_datetime()))
 
-  log <- readr::read_csv(maintenance_file, col_types = readr::cols(
+  log <- readr::read_tsv(maintenance_file, col_types = readr::cols(
     .default = readr::col_character(),
-    DateTime_start = readr::col_datetime("%Y-%m-%d %H:%M:%S%*"),
-    DateTime_end = readr::col_datetime("%Y-%m-%d %H:%M:%S%*"),
-    Flag = readr::col_integer()
+    TIMESTAMP_start = readr::col_datetime("%Y-%m-%d %H:%M:%S%*"),
+    TIMESTAMP_end = readr::col_datetime("%Y-%m-%d %H:%M:%S%*"),
+    flag = readr::col_integer()
   ))
 
   # remove NaN data at beginning
@@ -55,18 +49,18 @@ temp_oxy_chla_qaqc <- function(realtime_file,
   # add flag columns
   catdata$Flag_All <- 0
   catdata$Flag_DO_1 <- 0
-  catdata$Flag_DO_5 <- 0
-  catdata$Flag_DO_9 <- 0
+  catdata$Flag_DO_6 <- 0
+  catdata$Flag_DO_13 <- 0
   catdata$Flag_Chla <- 0
   catdata$Flag_Phyco <- 0
   catdata$Flag_TDS <- 0
 
   # replace negative DO values with 0
   catdata <- catdata %>%
-    dplyr::mutate(Flag_DO_1_5 = ifelse((! is.na(EXODO_mgL_1_5) & EXODO_mgL_1_5 < 0)
-                              | (! is.na(EXODOsat_percent_1_5) & EXODOsat_percent_1_5 < 0), 3, Flag_DO_1_5)) %>%
-    dplyr::mutate(EXODO_mgL_1_5 = ifelse(EXODO_mgL_1_5 < 0, 0, EXODO_mgL_1_5)) %>%
-    dplyr::mutate(EXODOsat_percent_1_5 = ifelse(EXODOsat_percent_1_5 <0, 0, EXODOsat_percent_1_5))
+    dplyr::mutate(Flag_DO_1 = ifelse((! is.na(EXODO_mgL_1) & EXODO_mgL_1 < 0)
+                              | (! is.na(EXODOsat_percent_1) & EXODOsat_percent_1 < 0), 3, Flag_DO_1)) %>%
+    dplyr::mutate(EXODO_mgL_1 = ifelse(EXODO_mgL_1 < 0, 0, EXODO_mgL_1)) %>%
+    dplyr::mutate(EXODOsat_percent_1 = ifelse(EXODOsat_percent_1 <0, 0, EXODOsat_percent_1))
 
   catdata <- catdata %>%
     dplyr::mutate(Flag_DO_6 = ifelse((! is.na(RDO_mgL_6) & RDO_mgL_6 < 0)
@@ -81,25 +75,24 @@ temp_oxy_chla_qaqc <- function(realtime_file,
     dplyr::mutate(RDOsat_percent_13 = ifelse(RDOsat_percent_13 < 0, 0, RDOsat_percent_13))
 
   # modify catdata based on the information in the log
-  for(i in 1:nrow(log))
-  {
+  for(i in 1:nrow(log)){
     # get start and end time of one maintenance event
-    start <- log$DateTime_start[i]
-    end <- log$DateTime_end[i]
+    start <- log$TIMESTAMP_start[i]
+    end <- log$TIMESTAMP_end[i]
 
     # get indices of columns affected by maintenance
-    if(grepl("^\\d+$", log$ColumnNumber[i])) # single num
+    if(grepl("^\\d+$", log$colnumber[i])) # single num
     {
-      maintenance_cols <- intersect(c(2:39), as.integer(log$ColumnNumber[i]))
+      maintenance_cols <- intersect(c(2:39), as.integer(log$colnumber[i]))
     }
-    else if(grepl("^c\\(\\s*\\d+\\s*(;\\s*\\d+\\s*)*\\)$", log$ColumnNumber[i])) # c(x;y;...)
+    else if(grepl("^c\\(\\s*\\d+\\s*(;\\s*\\d+\\s*)*\\)$", log$colnumber[i])) # c(x;y;...)
     {
-      maintenance_cols <- intersect(c(2:39), as.integer(unlist(regmatches(log$ColumnNumber[i],
-                                                                          gregexpr("\\d+", log$ColumnNumber[i])))))
+      maintenance_cols <- intersect(c(2:39), as.integer(unlist(regmatches(log$colnumber[i],
+                                                                          gregexpr("\\d+", log$colnumber[i])))))
     }
-    else if(grepl("^c\\(\\s*\\d+\\s*:\\s*\\d+\\s*\\)$", log$ColumnNumber[i])) # c(x:y)
+    else if(grepl("^c\\(\\s*\\d+\\s*:\\s*\\d+\\s*\\)$", log$colnumber[i])) # c(x:y)
     {
-      bounds <- as.integer(unlist(regmatches(log$ColumnNumber[i], gregexpr("\\d+", log$ColumnNumber[i]))))
+      bounds <- as.integer(unlist(regmatches(log$colnumber[i], gregexpr("\\d+", log$colnumber[i]))))
       maintenance_cols <- intersect(c(2:39), c(bounds[1]:bounds[2]))
     }
     else
@@ -112,7 +105,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
     }
 
     # remove EXO_Date and EXO_Time columns from the list of maintenance columns, because they will be deleted later
-    #maintenance_cols <- setdiff(maintenance_cols, c(21, 22))
+    maintenance_cols <- setdiff(maintenance_cols, c(21, 22))
 
     if(length(maintenance_cols) == 0)
     {
@@ -178,37 +171,37 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   # find EXO sonde sensor data that differs from the mean by more than the standard deviation times a given factor, and
   # replace with NAs between October and March, due to sensor fouling
-  Chla_RFU_1_5_mean <- mean(catdata$EXOChla_RFU_1_5, na.rm = TRUE)
-  Chla_ugL_1_5_mean <- mean(catdata$EXOChla_ugL_1_5, na.rm = TRUE)
-  BGAPC_RFU_1_5_mean <- mean(catdata$EXOBGAPC_RFU_1_5, na.rm = TRUE)
-  BGAPC_ugL_1_5_mean <- mean(catdata$EXOBGAPC_ugL_1_5, na.rm = TRUE)
-  Chla_RFU_1_5_threshold <- EXO_FOULING_FACTOR * sd(catdata$EXOChla_RFU_1_5, na.rm = TRUE)
-  Chla_ugL_1_5_threshold <- EXO_FOULING_FACTOR * sd(catdata$EXOChla_ugL_1_5, na.rm = TRUE)
-  BGAPC_RFU_1_5_threshold <- EXO_FOULING_FACTOR * sd(catdata$EXOBGAPC_RFU_1_5, na.rm = TRUE)
-  BGAPC_ugL_1_5_threshold <- EXO_FOULING_FACTOR * sd(catdata$EXOBGAPC_ugL_1_5, na.rm = TRUE)
+  Chla_RFU_1_mean <- mean(catdata$EXOChla_RFU_1, na.rm = TRUE)
+  Chla_ugL_1_mean <- mean(catdata$EXOChla_ugL_1, na.rm = TRUE)
+  BGAPC_RFU_1_mean <- mean(catdata$EXOBGAPC_RFU_1, na.rm = TRUE)
+  BGAPC_ugL_1_mean <- mean(catdata$EXOBGAPC_ugL_1, na.rm = TRUE)
+  Chla_RFU_1_threshold <- EXO_FOULING_FACTOR * sd(catdata$EXOChla_RFU_1, na.rm = TRUE)
+  Chla_ugL_1_threshold <- EXO_FOULING_FACTOR * sd(catdata$EXOChla_ugL_1, na.rm = TRUE)
+  BGAPC_RFU_1_threshold <- EXO_FOULING_FACTOR * sd(catdata$EXOBGAPC_RFU_1, na.rm = TRUE)
+  BGAPC_ugL_1_threshold <- EXO_FOULING_FACTOR * sd(catdata$EXOBGAPC_ugL_1, na.rm = TRUE)
 
   catdata <- catdata %>%
     dplyr::mutate(Flag_Chla = ifelse(DateTime >= ymd("2020-10-01") & DateTime < ymd("2021-03-01") &
-                                (! is.na(EXOChla_RFU_1_5) & abs(EXOChla_RFU_1_5 - Chla_RFU_1_5_mean) > Chla_RFU_1_5_threshold |
-                                   ! is.na(EXOChla_ugL_1_5) & abs(EXOChla_ugL_1_5 - Chla_ugL_1_5_mean) > Chla_ugL_1_5_threshold),
+                                (! is.na(EXOChla_RFU_1) & abs(EXOChla_RFU_1 - Chla_RFU_1_mean) > Chla_RFU_1_threshold |
+                                   ! is.na(EXOChla_ugL_1) & abs(EXOChla_ugL_1 - Chla_ugL_1_mean) > Chla_ugL_1_threshold),
                               4, Flag_Chla)) %>%
     dplyr::mutate(Flag_Phyco = ifelse(DateTime >= ymd("2020-10-01") & DateTime < ymd("2021-03-01") &
-                                 (! is.na(EXOBGAPC_RFU_1_5) & abs(EXOBGAPC_RFU_1_5 - BGAPC_RFU_1_5_mean) > BGAPC_RFU_1_5_threshold |
-                                    ! is.na(EXOBGAPC_ugL_1_5) & abs(EXOBGAPC_ugL_1_5 - BGAPC_ugL_1_5_mean) > BGAPC_ugL_1_5_threshold),
+                                 (! is.na(EXOBGAPC_RFU_1) & abs(EXOBGAPC_RFU_1 - BGAPC_RFU_1_mean) > BGAPC_RFU_1_threshold |
+                                    ! is.na(EXOBGAPC_ugL_1) & abs(EXOBGAPC_ugL_1 - BGAPC_ugL_1_mean) > BGAPC_ugL_1_threshold),
                                4, Flag_Phyco)) %>%
-    dplyr::mutate(EXOChla_RFU_1_5 = ifelse(DateTime >= ymd("2020-10-01") & DateTime < ymd("2021-03-01") &
-                                    abs(EXOChla_RFU_1_5 - Chla_RFU_1_5_mean) > Chla_RFU_1_5_threshold, NA, EXOChla_RFU_1_5)) %>%
-    dplyr::mutate(EXOChla_ugL_1_5 = ifelse(DateTime >= ymd("2020-10-01") & DateTime < ymd("2021-03-01") &
-                                    abs(EXOChla_ugL_1_5 - Chla_ugL_1_5_mean) > Chla_ugL_1_5_threshold, NA, EXOChla_ugL_1_5)) %>%
-    dplyr::mutate(EXOBGAPC_RFU_1_5 = ifelse(DateTime >= ymd("2020-10-01") & DateTime < ymd("2021-03-01") &
-                                     abs(EXOBGAPC_RFU_1_5 - BGAPC_RFU_1_5_mean) > BGAPC_RFU_1_5_threshold, NA, EXOBGAPC_RFU_1_5)) %>%
-    dplyr::mutate(EXOBGAPC_ugL_1_5 = ifelse(DateTime >= ymd("2020-10-01") & DateTime < ymd("2021-03-01") &
-                                     abs(EXOBGAPC_ugL_1_5 - BGAPC_ugL_1_5_mean) > BGAPC_ugL_1_5_threshold, NA, EXOBGAPC_ugL_1_5))
+    dplyr::mutate(EXOChla_RFU_1 = ifelse(DateTime >= ymd("2020-10-01") & DateTime < ymd("2021-03-01") &
+                                    abs(EXOChla_RFU_1 - Chla_RFU_1_mean) > Chla_RFU_1_threshold, NA, EXOChla_RFU_1)) %>%
+    dplyr::mutate(EXOChla_ugL_1 = ifelse(DateTime >= ymd("2020-10-01") & DateTime < ymd("2021-03-01") &
+                                    abs(EXOChla_ugL_1 - Chla_ugL_1_mean) > Chla_ugL_1_threshold, NA, EXOChla_ugL_1)) %>%
+    dplyr::mutate(EXOBGAPC_RFU_1 = ifelse(DateTime >= ymd("2020-10-01") & DateTime < ymd("2021-03-01") &
+                                     abs(EXOBGAPC_RFU_1 - BGAPC_RFU_1_mean) > BGAPC_RFU_1_threshold, NA, EXOBGAPC_RFU_1)) %>%
+    dplyr::mutate(EXOBGAPC_ugL_1 = ifelse(DateTime >= ymd("2020-10-01") & DateTime < ymd("2021-03-01") &
+                                     abs(EXOBGAPC_ugL_1 - BGAPC_ugL_1_mean) > BGAPC_ugL_1_threshold, NA, EXOBGAPC_ugL_1))
 
   # flag EXO sonde sensor data of value above 4 * standard deviation at other times
   catdata <- catdata %>%
-    dplyr::mutate(Flag_Phyco = ifelse(! is.na(EXOBGAPC_RFU_1_5) & abs(EXOBGAPC_RFU_1_5 - BGAPC_RFU_1_5_mean) > BGAPC_RFU_1_5_threshold |
-                                 ! is.na(EXOBGAPC_ugL_1_5) & abs(EXOBGAPC_ugL_1_5 - BGAPC_ugL_1_5_mean) > BGAPC_ugL_1_5_threshold,
+    dplyr::mutate(Flag_Phyco = ifelse(! is.na(EXOBGAPC_RFU_1) & abs(EXOBGAPC_RFU_1 - BGAPC_RFU_1_mean) > BGAPC_RFU_1_threshold |
+                                 ! is.na(EXOBGAPC_ugL_1) & abs(EXOBGAPC_ugL_1 - BGAPC_ugL_1_mean) > BGAPC_ugL_1_threshold,
                                5, Flag_Phyco))
 
   # delete EXO_Date and EXO_Time columns
@@ -219,9 +212,9 @@ temp_oxy_chla_qaqc <- function(realtime_file,
   #catdata$Site <- "50"
 
   # reorder columns
-  catdata <- catdata %>% dplyr::select(-RECORD, -CR6_Batt_V, -CR6Panel_Temp_C, -Flag_All, -Flag_DO_1_5, -Flag_DO_6,
+  catdata <- catdata %>% dplyr::select(-RECORD, -CR6_Batt_V, -CR6Panel_Temp_C, -Flag_All, -Flag_DO_1, -Flag_DO_6,
                                 -Flag_DO_13, -Flag_Chla, -Flag_Phyco, -Flag_TDS, -EXO_wiper, -EXO_cablepower,
-                                -EXO_battery,-EXO_pressure_1_5)
+                                -EXO_battery,-EXO_pressure)
 
   # replace NaNs with NAs
   catdata[is.na(catdata)] <- NA
@@ -235,81 +228,87 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
     d1 <- catdata
 
-    #d2 <- read.csv(qaqc_file, na.strings = 'NA', stringsAsFactors = FALSE)
+    d2 <- read.csv(qaqc_file, na.strings = 'NA', stringsAsFactors = FALSE)
+    
+    #subset d1 to only dates in d2
+    d1 <- d1[d1$DateTime %in% d2$DateTime,]
+    d2 <- d2[d2$DateTime %in% d1$DateTime,]
+    
 
     TIMESTAMP_in <- as_datetime(d1$DateTime,tz = input_file_tz)
-    d1$DateTime <- with_tz(TIMESTAMP_in,tz = local_tzone)
+    d1$TIMESTAMP <- with_tz(TIMESTAMP_in,tz = local_tzone)
 
     #TIMESTAMP_in <- as_datetime(d2$DateTime,tz = input_file_tz)
-    #d2$TIMESTAMP <- with_tz(TIMESTAMP_in,tz = local_tzone)
+    d2$TIMESTAMP <- with_tz(TIMESTAMP_in,tz = local_tzone)
 
     #d1 <- d1[which(d1$TIMESTAMP > d2$TIMESTAMP[nrow(d2)] | d1$TIMESTAMP < d2$TIMESTAMP[1]), ]
 
-    #d3 <- data.frame(TIMESTAMP = d1$TIMESTAMP, wtr_surface = d1$wtr_surface, wtr_1 = d1$wtr_1, wtr_2 = d1$wtr_2, wtr_3 = d1$wtr_3, wtr_4 = d1$wtr_4,
-    #                 wtr_5 = d1$wtr_5, wtr_6 = d1$wtr_6, wtr_7 = d1$wtr_7, wtr_8 = d1$wtr_8, wtr_9 = d1$wtr_9, wtr_1_exo = d1$EXO_wtr_1, wtr_5_do = d1$dotemp_5, wtr_9_do = d1$dotemp_9)
+    #d3 <- data.frame(TIMESTAMP = d1$TIMESTAMP, wtr_surf, wtr_1 = d1$wtr_1, wtr_2 = d1$wtr_2, wtr_3 = d1$wtr_3, wtr_4 = d1$wtr_4,
+    #                 wtr_5 = d1$wtr_5, wtr_6 = d1$wtr_6, wtr_7 = d1$wtr_7, wtr_8 = d1$wtr_8, wtr_9 = d1$wtr_9, wtr_10 = d1$wtr_10, wtr_11 = d1$wtr_11, 
+    #                 wtr_12 = d1$wtr_12, wtr_13 = d1$wtr_13, wtr_1_exo = d1$EXO_wtr_1, wtr_6_do = d1$dotemp_6, wtr_13_do = d1$dotemp_13)
 
-    d3 <-  data.frame(TIMESTAMP = d1$DateTime, wtr_surface = d1$ThermistorTemp_C_surface,
+    d3 <-  data.frame(TIMESTAMP = d1$TIMESTAMP, 
                       wtr_1 = d1$ThermistorTemp_C_1, wtr_2 = d1$ThermistorTemp_C_2,
                       wtr_3 = d1$ThermistorTemp_C_3, wtr_4 = d1$ThermistorTemp_C_4,
                       wtr_5 = d1$ThermistorTemp_C_5, wtr_6 = d1$ThermistorTemp_C_6,
                       wtr_7 = d1$ThermistorTemp_C_7, wtr_8 = d1$ThermistorTemp_C_8,
                       wtr_9 = d1$ThermistorTemp_C_9, wtr_10 = d1$ThermistorTemp_C_10,
                       wtr_11 = d1$ThermistorTemp_C_11, wtr_12 = d1$ThermistorTemp_C_12,
-                      wtr_13 = d1$ThermistorTemp_C_13, wtr_1_5_exo = d1$EXOTemp_C_1_5,
+                      wtr_13 = d1$ThermistorTemp_C_13, wtr_1_exo = d1$EXOTemp_C_1,
                       wtr_6_do = d1$RDOTemp_C_6, wtr_13_do = d1$RDOTemp_C_13,
-                      Chla_1_5 = d1$EXOChla_ugL_1_5, doobs_1_5 = d1$EXODO_mgL_1_5,
+                      Chla_1 = d1$EXOChla_ugL_1, doobs_1 = d1$EXODO_mgL_1,
                       doobs_6 = d1$RDO_mgL_6, doobs_13 = d1$RDO_mgL_13,
-                      fDOM_1_5 = d1$EXOfDOM_QSU_1_5, bgapc_1_5 = d1$EXOBGAPC_ugL_1_5,
-                      depth_1.5 = d1$EXO_depth)
+                      fDOM_1 = d1$EXOfDOM_QSU_1, bgapc_1 = d1$EXOBGAPC_ugL_1,
+                      depth_1 = d1$EXO_depth)
 
-     #d4 <- data.frame(TIMESTAMP = d2$TIMESTAMP, wtr_surface = d2$ThermistorTemp_C_surface,
-     #                wtr_1 = d2$ThermistorTemp_C_1, wtr_2 = d2$ThermistorTemp_C_2,
-     #                wtr_3 = d2$ThermistorTemp_C_3, wtr_4 = d2$ThermistorTemp_C_4,
-     #                wtr_5 = d2$ThermistorTemp_C_5, wtr_6 = d2$ThermistorTemp_C_6,
-     #                wtr_7 = d2$ThermistorTemp_C_7, wtr_8 = d2$ThermistorTemp_C_8,
-     #                wtr_9 = d2$ThermistorTemp_C_9, wtr_10 = d2$ThermistorTemp_C_10,
-     #                wtr_11 = d2$ThermistorTemp_C_11, wtr_12 = d2$ThermistorTemp_C_12,
-     #                wtr_13 = d2$ThermistorTemp_C_13, wtr_1_5_exo = d2$EXOTemp_C_1_5,
-     #                wtr_6_do = d2$RDOTemp_C_6, wtr_13_do = d2$RDOTemp_C_13,
-     #                Chla_1_5 = d2$EXOChla_ugL_1_5, doobs_1_5 = d2$EXODO_mgL_1_5,
-     #                doobs_6 = d2$RDO_mgL_6, doobs_13 = d2$RDO_mgL_13,
-     #                fDOM_1_5 = d2$EXOfDOM_QSU_1_5, bgapc_1_5 = d2$EXOBGAPC_ugL_1_5,
-     #                depth_1.5 = d2$EXO_depth)
+     d4 <- data.frame(TIMESTAMP = d2$TIMESTAMP, 
+                      wtr_1 = d2$ThermistorTemp_C_1, wtr_2 = d2$ThermistorTemp_C_2,
+                      wtr_3 = d2$ThermistorTemp_C_3, wtr_4 = d2$ThermistorTemp_C_4,
+                      wtr_5 = d2$ThermistorTemp_C_5, wtr_6 = d2$ThermistorTemp_C_6,
+                      wtr_7 = d2$ThermistorTemp_C_7, wtr_8 = d2$ThermistorTemp_C_8,
+                      wtr_9 = d2$ThermistorTemp_C_9, wtr_10 = d2$ThermistorTemp_C_10,
+                      wtr_11 = d2$ThermistorTemp_C_11, wtr_12 = d2$ThermistorTemp_C_12,
+                      wtr_13 = d2$ThermistorTemp_C_13, wtr_1_exo = d2$EXOTemp_C_1,
+                      wtr_6_do = d2$RDOTemp_C_6, wtr_13_do = d2$RDOTemp_C_13,
+                      Chla_1 = d2$EXOChla_ugL_1, doobs_1 = d2$EXODO_mgL_1,
+                      doobs_6 = d2$RDO_mgL_6, doobs_13 = d2$RDO_mgL_13,
+                      fDOM_1 = d2$EXOfDOM_QSU_1, bgapc_1 = d2$EXOBGAPC_ugL_1,
+                      depth_1 = d2$EXO_depth)
 
-    d <- d3#rbind(d3,d4)
+    d <- rbind(d3,d4)
 
   }else{
     #Different lakes are going to have to modify this for their temperature data format
     d1 <- catdata
 
     TIMESTAMP_in <- as_datetime(d1$DateTime,tz = input_file_tz)
-    d1$DateTime <- with_tz(TIMESTAMP_in,tz = local_tzone)
+    d1$TIMESTAMP <- with_tz(TIMESTAMP_in,tz = local_tzone)
 
-    d <-  data.frame(TIMESTAMP = d1$DateTime, wtr_surface = d1$ThermistorTemp_C_surface,
+    d <-  data.frame(TIMESTAMP = d1$DateTime, 
                      wtr_1 = d1$ThermistorTemp_C_1, wtr_2 = d1$ThermistorTemp_C_2,
                      wtr_3 = d1$ThermistorTemp_C_3, wtr_4 = d1$ThermistorTemp_C_4,
                      wtr_5 = d1$ThermistorTemp_C_5, wtr_6 = d1$ThermistorTemp_C_6,
                      wtr_7 = d1$ThermistorTemp_C_7, wtr_8 = d1$ThermistorTemp_C_8,
                      wtr_9 = d1$ThermistorTemp_C_9, wtr_10 = d1$ThermistorTemp_C_10,
                      wtr_11 = d1$ThermistorTemp_C_11, wtr_12 = d1$ThermistorTemp_C_12,
-                     wtr_13 = d1$ThermistorTemp_C_13, wtr_1_5_exo = d1$EXOTemp_C_1_5,
+                     wtr_13 = d1$ThermistorTemp_C_13, wtr_1_exo = d1$EXOTemp_C_1,
                      wtr_6_do = d1$RDOTemp_C_6, wtr_13_do = d1$RDOTemp_C_13,
-                     Chla_1_5 = d1$EXOChla_ugL_1_5, doobs_1_5 = d1$EXODO_mgL_1_5,
+                     Chla_1 = d1$EXOChla_ugL_1, doobs_1 = d1$EXODO_mgL_1,
                      doobs_6 = d1$RDO_mgL_6, doobs_13 = d1$RDO_mgL_13,
-                     fDOM_1_5 = d1$EXOfDOM_QSU_1_5, bgapc_1_5 = d1$EXOBGAPC_ugL_1_5,
-                     depth_1.5 = d1$EXO_depth)
+                     fDOM_1 = d1$EXOfDOM_QSU_1, bgapc_1 = d1$EXOBGAPC_ugL_1,
+                     depth_1 = d1$EXO_depth)
   }
 
 
   d$fDOM_1 <- config$exo_sensor_2_grab_sample_fdom[1] + config$exo_sensor_2_grab_sample_fdom[2] * d$fDOM_1
 
   #oxygen unit conversion
-  d$doobs_1_5 <- d$doobs_1_5*1000/32  #mg/L (obs units) -> mmol/m3 (glm units)
+  d$doobs_1 <- d$doobs_1*1000/32  #mg/L (obs units) -> mmol/m3 (glm units)
   d$doobs_6 <- d$doobs_6*1000/32  #mg/L (obs units) -> mmol/m3 (glm units)
   d$doobs_13 <- d$doobs_13*1000/32  #mg/L (obs units) -> mmol/m3 (glm units)
 
   d$Chla_1 <-  config$exo_sensor_2_ctd_chla[1] +  d$Chla_1 *  config$exo_sensor_2_ctd_chla[2]
-  d$doobs_1_5 <- config$exo_sensor_2_ctd_do_1_5[1]  +   d$doobs_1_5 * config$exo_sensor_2_ctd_do_1_5[2]
+  d$doobs_1 <- config$exo_sensor_2_ctd_do_1_5[1]  +   d$doobs_1 * config$exo_sensor_2_ctd_do_1[2]
   d$doobs_6 <- config$do_sensor_2_ctd_do_6[1] +   d$doobs_6 * config$do_sensor_2_ctd_do_6[2]
   d$doobs_13 <- config$do_sensor_2_ctd_do_13[1] +   d$doobs_13 * config$do_sensor_2_ctd_do_13[2]
 
@@ -331,9 +330,9 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
 
   d_therm <- d %>%
-    dplyr::select(timestamp, wtr_surface, wtr_1, wtr_2, wtr_3, wtr_4, wtr_5, wtr_6,
+    dplyr::select(timestamp, wtr_1, wtr_2, wtr_3, wtr_4, wtr_5, wtr_6,
            wtr_7,wtr_8, wtr_9, wtr_10, wtr_11, wtr_12, wtr_13) %>%
-    dplyr::rename("0.0" = wtr_surface,
+    dplyr::rename(
            "1.0" = wtr_1,
            "2.0" = wtr_2,
            "3.0" = wtr_3,
@@ -363,8 +362,8 @@ temp_oxy_chla_qaqc <- function(realtime_file,
            value = ifelse(is.nan(value), NA, value))
 
   d_exo_temp <- d %>%
-    dplyr::select(timestamp, wtr_1_5_exo) %>%
-    rename("1.5" = wtr_1_5_exo) %>%
+    dplyr::select(timestamp, wtr_1_exo) %>%
+    rename("1" = wtr_1_exo) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "temperature",
            method = "exo_sensor",
@@ -380,32 +379,32 @@ temp_oxy_chla_qaqc <- function(realtime_file,
            value = ifelse(is.nan(value), NA, value))
 
   d_exo_do <- d %>%
-    select(timestamp, doobs_1_5) %>%
-    rename("1.5" = doobs_1_5) %>%
+    select(timestamp, doobs_1) %>%
+    rename("1" = doobs_1) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "oxygen",
            method = "exo_sensor",
            value = ifelse(is.nan(value), NA, value))
 
   d_exo_fdom <- d %>%
-    select(timestamp, fDOM_1_5) %>%
-    rename("1.5" = fDOM_1_5) %>%
+    select(timestamp, fDOM_1) %>%
+    rename("1" = fDOM_1) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "fdom",
            method = "exo_sensor",
            value = ifelse(is.nan(value), NA, value))
 
   d_exo_chla <- d %>%
-    select(timestamp, Chla_1_5) %>%
-    rename("1.5" = Chla_1_5) %>%
+    select(timestamp, Chla_1) %>%
+    rename("1" = Chla_1) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "chla",
            method = "exo_sensor",
            value = ifelse(is.nan(value), NA, value))
 
   d_exo_bgapc <- d %>%
-    select(timestamp, bgapc_1_5) %>%
-    rename("1.5" = bgapc_1_5) %>%
+    select(timestamp, bgapc_1) %>%
+    rename("1" = bgapc_1) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "bgapc",
            method = "exo_sensor",
@@ -413,30 +412,30 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   if(config$variable_obsevation_depths == TRUE){
 
-    d_depth <- d %>% mutate(wtr_surface = depth_1.5 - 0.5 - 0.9,
-                            wtr_1 = depth_1.5 - 0.5,
-                            wtr_2 = depth_1.5 + 0.5,
-                            wtr_3 = depth_1.5 + 1.5,
-                            wtr_4 = depth_1.5 + 2.5,
-                            wtr_5 = depth_1.5 + 3.5,
-                            wtr_6 = depth_1.5 + 4.5,
-                            wtr_7 = depth_1.5 + 5.5,
-                            wtr_8 = depth_1.5 + 6.5,
-                            wtr_9 = depth_1.5 + 7.5,
-                            wtr_10 = depth_1.5 + 8.5,
-                            wtr_11 = depth_1.5 + 9.5,
-                            wtr_12 = depth_1.5 + 10.5,
-                            wtr_13 = depth_1.5 + 11.5,
-                            wtr_1_5_exo = depth_1.5,
-                            wtr_6_do = depth_1.5 + 4.5,
-                            wtr_13_do = depth_1.5 + 11.5,
-                            Chla_1_5 = depth_1.5,
-                            doobs_1_5 = depth_1.5,
-                            doobs_6 = depth_1.5 + 4.5,
-                            doobs_13 = depth_1.5 + 11.5,
-                            fDOM_1_5 = depth_1.5,
-                            bgapc_1_5 = depth_1.5) %>%
-      select(-c(depth_1.5, day,year, hour, month))
+    d_depth <- d %>% mutate(wtr_surface = depth_1 - 0.5 - 0.4,
+                            wtr_1 = depth_1,
+                            wtr_2 = depth_1 + 1,
+                            wtr_3 = depth_1 + 2,
+                            wtr_4 = depth_1 + 3,
+                            wtr_5 = depth_1 + 4,
+                            wtr_6 = depth_1 + 5,
+                            wtr_7 = depth_1 + 6,
+                            wtr_8 = depth_1 + 7,
+                            wtr_9 = depth_1 + 8,
+                            wtr_10 = depth_1 + 9,
+                            wtr_11 = depth_1 + 10,
+                            wtr_12 = depth_1 + 11,
+                            wtr_13 = depth_1 + 12,
+                            wtr_1_exo = depth_1,
+                            wtr_6_do = depth_1 + 5,
+                            wtr_13_do = depth_1 + 12,
+                            Chla_1 = depth_1,
+                            doobs_1 = depth_1,
+                            doobs_6 = depth_1 + 5,
+                            doobs_13 = depth_1 + 12,
+                            fDOM_1 = depth_1,
+                            bgapc_1 = depth_1) %>%
+      select(-c(depth_1, day,year, hour, month))
 
 
     d_therm_depth <- d_depth %>%
@@ -486,8 +485,8 @@ temp_oxy_chla_qaqc <- function(realtime_file,
       filter(depth > 0.0)
 
     d_exo_temp_depth <- d_depth %>%
-      select(timestamp, wtr_1_5_exo) %>%
-      rename("1.5" = wtr_1_5_exo) %>%
+      select(timestamp, wtr_1_exo) %>%
+      rename("1" = wtr_1_exo) %>%
       pivot_longer(cols = -timestamp, names_to = "depth", values_to = "depth_exo") %>%
       mutate(variable = "temperature",
              method = "exo_sensor")
@@ -517,8 +516,8 @@ temp_oxy_chla_qaqc <- function(realtime_file,
       filter(depth > 0.0)
 
     d_exo_do_depth <- d_depth %>%
-      select(timestamp, doobs_1_5) %>%
-      rename("1.5" = doobs_1_5) %>%
+      select(timestamp, doobs_1) %>%
+      rename("1" = doobs_1) %>%
       pivot_longer(cols = -timestamp, names_to = "depth", values_to = "depth_exo") %>%
       mutate(variable = "oxygen",
              method = "exo_sensor")
@@ -532,8 +531,8 @@ temp_oxy_chla_qaqc <- function(realtime_file,
       filter(depth > 0.0)
 
     d_exo_fdom_depth <- d_depth %>%
-      select(timestamp, fDOM_1_5) %>%
-      rename("1.5" = fDOM_1_5) %>%
+      select(timestamp, fDOM_1) %>%
+      rename("1" = fDOM_1) %>%
       pivot_longer(cols = -timestamp, names_to = "depth", values_to = "depth_exo") %>%
       mutate(variable = "oxygen",
              method = "exo_sensor")
@@ -547,8 +546,8 @@ temp_oxy_chla_qaqc <- function(realtime_file,
       filter(depth > 0.0)
 
     d_exo_chla_depth <- d_depth %>%
-      select(timestamp, Chla_1_5) %>%
-      rename("1.5" = Chla_1_5) %>%
+      select(timestamp, Chla_1) %>%
+      rename("1" = Chla_1) %>%
       pivot_longer(cols = -timestamp, names_to = "depth", values_to = "depth_exo") %>%
       mutate(variable = "chla",
              method = "exo_sensor")
@@ -562,8 +561,8 @@ temp_oxy_chla_qaqc <- function(realtime_file,
       filter(depth > 0.0)
 
     d_exo_bgapc_depth <- d_depth %>%
-      select(timestamp, bgapc_1_5) %>%
-      rename("1.5" = bgapc_1_5) %>%
+      select(timestamp, bgapc_1) %>%
+      rename("1" = bgapc_1) %>%
       pivot_longer(cols = -timestamp, names_to = "depth", values_to = "depth_exo") %>%
       mutate(variable = "bgapc",
              method = "exo_sensor")
