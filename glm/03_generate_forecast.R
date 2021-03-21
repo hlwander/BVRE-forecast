@@ -1,3 +1,8 @@
+# remotes::install_github("FLARE-forecast/flare", force = T)
+
+lake_directory <- getwd()
+forecast_location <- file.path(lake_directory, "glm")
+
 #### Move to 03_forecast_inflows.R
 config <- yaml::read_yaml(file.path(forecast_location, "configuration_files","configure_flare.yml"))
 run_config <- yaml::read_yaml(file.path(forecast_location, "configuration_files","run_configuration.yml"))
@@ -24,6 +29,8 @@ forecast_start_datetime_UTC <- lubridate::with_tz(forecast_start_datetime_local,
 forecast_hour <- lubridate::hour(forecast_start_datetime_UTC)
 if(forecast_hour < 10){forecast_hour <- paste0("0",forecast_hour)}
 noaa_forecast_path <- file.path(config$data_location, config$forecast_met_model,"fcre",lubridate::as_date(forecast_start_datetime_UTC),forecast_hour)
+
+pacman::p_load(tidyverse, lubridate, noaaGEFSpoint)
 
 
 
@@ -93,7 +100,7 @@ if(length(forecast_files) > 0){
                                                   end_datetime_local = end_datetime_local,
                                                   forecast_start_datetime = forecast_start_datetime_local,
                                                   use_forecasted_met = TRUE)
-  met_file_names <- list.files(noaa_forecast_path, full.names = TRUE)    
+  met_file_names <- met_out$filenames # list.files(noaa_forecast_path, full.names = TRUE)    
   historical_met_error <- NA
 
   #Inflow Drivers (already done)
@@ -113,7 +120,7 @@ if(length(forecast_files) > 0){
   outflow_file_names <-config$specified_outflow1
 
   #Create observation matrix
-  obs <- create_obs_matrix_hlw(cleaned_observations_file_long, #note to self - I manually changed the observations_postQAQC_long and changed all 7/11 observations to 7/27
+  obs <- flare::create_obs_matrix(cleaned_observations_file_long, #note to self - I manually changed the observations_postQAQC_long and changed all 7/11 observations to 7/27
                                   obs_config,                     
                                   start_datetime_local,           
                                   end_datetime_local,
@@ -164,9 +171,27 @@ if(length(forecast_files) > 0){
   aux_states_init$model_internal_depths <- init$model_internal_depths
   aux_states_init$lake_depth <- init$lake_depth
   aux_states_init$salt <- init$salt
+  
+  # states_init = init$states
+  # pars_init = init$pars
+  # aux_states_init = aux_states_init
+  # obs = obs
+  # obs_sd = obs_config$obs_sd
+  # model_sd = model_sd
+  # working_directory = config$run_config$execute_location
+  # met_file_names = met_file_names
+  # inflow_file_names = config$specified_inflow1#inflow_file_names
+  # outflow_file_names = config$specified_outflow1#outflow_file_names
+  # start_datetime = start_datetime_local
+  # end_datetime = end_datetime_local
+  # forecast_start_datetime = forecast_start_datetime_local
+  # config = config
+  # pars_config = pars_config
+  # states_config = states_config
+  # obs_config = obs_config
 
   #Run EnKF
-  enkf_output <- flare::run_enkf_forecast(states_init = init$states,
+  enkf_output <- run_enkf_forecast(states_init = init$states,
                                           pars_init = init$pars,
                                           aux_states_init = aux_states_init,
                                           obs = obs,
@@ -189,6 +214,9 @@ if(length(forecast_files) > 0){
   # Save forecast
   saved_file <- flare::write_forecast_netcdf(enkf_output,
                                              forecast_location = config$run_config$forecast_location)
+  
+  flare::plotting_general("C:/Users/mooret/Desktop/Git/BVRE-forecast/glm/bvre_H_2019_07_27_2019_07_29_F_5_20210321T162203.nc",
+                          qaqc_location = config$qaqc_data_location)
 
   #Create EML Metadata
   flare::create_flare_eml(file_name = saved_file,
