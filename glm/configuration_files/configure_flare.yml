@@ -1,5 +1,5 @@
-qaqc_data_location: ./data_processing/qaqc_data
-data_location: ./BVRE-data
+qaqc_data_location: C:/Users/mooret/Desktop/Git/BVRE-forecast/data_processing/qaqc_data
+data_location: C:/Users/mooret/Desktop/Git/BVRE-forecast/BVRE-data
 
 ##########################
 # Lake information
@@ -58,8 +58,8 @@ parameter_uncertainty: TRUE
 met_downscale_uncertainty: TRUE
 inflow_process_uncertainty: TRUE
 
-specified_inflow1: BVR-GLM/inputs/BVR_inflow_2014_2019_20200917_allfractions_2poolsDOC_withch4_nldasInflow.csv
-specified_outflow1: BVR-GLM/inputs/BVR_spillway_outflow_2014_2019_20200917_nldasInflow.csv
+specified_inflow1: C:/Users/mooret/Desktop/Git/BVR-GLM/inputs/BVR_inflow_2014_2019_20200917_allfractions_2poolsDOC_withch4_nldasInflow.csv
+specified_outflow1: C:/Users/mooret/Desktop/Git/BVR-GLM/inputs/BVR_spillway_outflow_2014_2019_20200917_nldasInflow.csv
 
 use_future_inflow: FALSE
 future_inflow_flow_coeff: [0.0010803, 0.9478724, 0.3478991]
@@ -122,7 +122,7 @@ default_blue_ice_thickness_init: 0.0
 ensemble_size:  221 #221 #441
 localization_distance: .na #distance in meters were covariances in the model error are used
 vert_decorr_length: 5.0
-no_negative_xs: TRUE
+no_negative_states: TRUE
 assimilate_first_step: FALSE
 
 #################################
