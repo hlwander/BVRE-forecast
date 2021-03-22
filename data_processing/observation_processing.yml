@@ -7,7 +7,6 @@ lake_name: Beaverdam Reservoir
 lake_latitude: 37.31276   #Degrees North
 lake_longitude: -79.81607  #Degrees West
 
-#Time zone that GLM is run in
 #Currently needed to be GMT so that it interfaces with the NOAA forecast
 #reference_tzone <<- "GMT"
 #Local time zone of the lake

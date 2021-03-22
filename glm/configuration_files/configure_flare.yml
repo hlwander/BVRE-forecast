@@ -1,5 +1,5 @@
-qaqc_data_location: ./data_processing/qaqc_data
-data_location: ./BVRE-data
+qaqc_data_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVRE-forecast/data_processing/qaqc_data
+data_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVRE-forecast/BVRE-data
 
 ##########################
 # Lake information
@@ -30,7 +30,7 @@ metadata:
         forecast_model_id: https://github.com/rqthomas/flare/commit/d1ddcb07b9d28863890597503fc4aa4a4496de56
         name: General Lake Model
         type: process-based
-        repository: https://github.com/AquaticEcoDynamics/GLM/releases/tag/v3.1.0 #not sure what to set this to - updated GLM on FCR-GLM repo
+        repository: https://github.com/AquaticEcoDynamics/GLM/releases/tag/v3.1.0 
     me:
         individualName:
               givenName: "Heather"
@@ -46,7 +46,7 @@ metadata:
 
 model_name: glm_aed #other is "null"
 
-base_GLM_nml: working_directory/glm3.nml
+base_GLM_nml: configuration_files/glm3.nml
 
 #All sources of uncertainty and data used to constrain
 use_obs_constraint: TRUE
@@ -122,7 +122,7 @@ default_blue_ice_thickness_init: 0.0
 ensemble_size:  221 #221 #441
 localization_distance: .na #distance in meters were covariances in the model error are used
 vert_decorr_length: 5.0
-no_negative_xs: TRUE
+no_negative_states: TRUE
 assimilate_first_step: FALSE
 
 #################################
