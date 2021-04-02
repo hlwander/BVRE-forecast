@@ -16,16 +16,16 @@ local_tzone: "EST"
 #specified_sss_inflow_file: .na #manual-data/FCR_SSS_inflow_2013_2019_20200701_allfractions_2DOCpools.csv
 #specified_sss_outflow_file: .na
 
-noaa_location: BVRE #where is this?
+noaa_location: BVRE 
 
 met_raw_obs_fname:
     - carina-data/FCRmet.csv
-    - Met_final_2015_2019.csv
+    - Met_final_2015_2020.csv
 #specified_metfile: .na #NA #paste0(manual_data_location, "/met_full_postQAQC.csv")
 
 downscaling_coeff: manual-data/debiased.coefficients.2018_07_12_2019_07_11.RData #don't know if this is the same for BVR 
 
-nldas: manual-data/FCR_GLM_NLDAS_010113_123119_GMTadjusted.csv #same for BVR
+nldas: manual-data/FCR_GLM_NLDAS_010113_123119_GMTadjusted.csv 
 
 #######################
 #### INFLOW AND OUTFLOW
@@ -72,7 +72,7 @@ ctd_fname: BVR-GLM/field_data/CTD_final_2013_2020.csv
 ch4_fname: BVR-GLM/field_data/field_gasses.csv
 nutrients_fname: BVR-GLM/field_data/chem.csv
 variable_obsevation_depths: FALSE
-exo_sensor_2_ctd_chla: [0, 1]  #c(-2.0430, 2.5314) #c(1.8795, 0.6662) #literally have no idea what these numbers are...
+exo_sensor_2_ctd_chla: [0, 1]  #c(-2.0430, 2.5314) #c(1.8795, 0.6662) 
 exo_sensor_2_ctd_do_1_5: [0, 1] #c(8.3670, 0.7152)
 do_sensor_2_ctd_do_6: [0, 1] #c(19.6254, 0.8636)
 do_sensor_2_ctd_do_13: [0, 1] #c(11.0971, 0.9156)

@@ -29,8 +29,6 @@ met_qaqc <- function(realtime_file,
                             Albedo_Avg = readr::col_double())) %>%
       dplyr::slice(-c(1,2,3,4))
 
-    #d1 <- d1[-85572, ]
-
     TIMESTAMP_in <- lubridate::force_tz(d1$TIMESTAMP, tzone = input_file_tz)
 
     d1$TIMESTAMP <- lubridate::with_tz(TIMESTAMP_in,tz = local_tzone)
@@ -87,20 +85,10 @@ met_qaqc <- function(realtime_file,
 
     d2$TIMESTAMP <- lubridate::with_tz(TIMESTAMP_in,tz = local_tzone)
 
-    #d3 <- read.csv( fname[3])
-    #TIMESTAMP_in <- as.POSIXct(d3$time,
-    #                           format= "%Y-%m-%d %H:%M",
-    #                           tz = input_file_tz)
-
-
-    #d3$TIMESTAMP <- with_tz(TIMESTAMP_in,tz = local_tzone)
-
     d1 <- data.frame(time = d1$TIMESTAMP, ShortWave = d1$SR01Up_Avg, LongWave = d1$IR01UpCo_Avg, AirTemp = d1$AirTC_Avg, RelHum = d1$RH, WindSpeed = d1$WS_ms_Avg, Rain = d1$Rain_mm_Tot, pressure = d1$BP_kPa_Avg)
     d2 <- data.frame(time = d2$TIMESTAMP, ShortWave = d2$ShortwaveRadiationUp_Average_W_m2, LongWave = d2$InfaredRadiationUp_Average_W_m2, AirTemp = d2$AirTemp_Average_C, RelHum = d2$RH_percent, WindSpeed = d2$WindSpeed_Average_m_s, Rain = d2$Rain_Total_mm, pressure = d2$BP_Average_kPa)
 
-    d1 <- d1[which(d1$time > d2$time[nrow(d2)] | d1$time < d2$time[1]), ]
-
-    #d3 <- d3[which(d3$TIMESTAMP < d2$TIMESTAMP[1])]
+    d1 <- d1[which(d1$time > d2$time[nrow(d2)] | d1$time < d2$time[1]), ] #this is a problem until I find the 2021 data
 
     d <- rbind(d2, d1)
 

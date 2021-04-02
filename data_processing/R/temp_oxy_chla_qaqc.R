@@ -44,7 +44,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
   ))
 
   # remove NaN data at beginning
-  #catdata <- catdata %>% dplyr::filter(DateTime >= ymd_hms("2018-07-05 17:50:00"))
+  catdata <- catdata %>% dplyr::filter(DateTime > ymd_hms("2020-08-13 11:30:00"))
 
   # add flag columns
   catdata$Flag_All <- 0

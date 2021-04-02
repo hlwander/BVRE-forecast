@@ -7,6 +7,10 @@ config$run_config$forecast_location <- forecast_location
 config$data_location <- file.path(lake_directory,"BVRE-data")
 config$qaqc_data_location <- file.path(lake_directory,"data_processing/qaqc_data")
 
+#source edited functions
+source("create_obs_matrix_hlw.R")
+source("mapunit_geom_by_ll_bbox_hlw.R")
+
 # Set up timings
 start_datetime_local <- lubridate::as_datetime(paste0(config$run_config$start_day_local," ",config$run_config$start_time_local), tz = config$local_tzone)
 if(is.na(config$run_config$forecast_start_day_local)){
@@ -24,8 +28,6 @@ forecast_start_datetime_UTC <- lubridate::with_tz(forecast_start_datetime_local,
 forecast_hour <- lubridate::hour(forecast_start_datetime_UTC)
 if(forecast_hour < 10){forecast_hour <- paste0("0",forecast_hour)}
 noaa_forecast_path <- file.path(config$data_location, config$forecast_met_model,"fcre",lubridate::as_date(forecast_start_datetime_UTC),forecast_hour)
-
-
 
 forecast_files <- list.files(noaa_forecast_path, full.names = TRUE)
 
@@ -126,8 +128,9 @@ if(length(forecast_files) > 0){
 
 
   states_config <- flare::generate_states_to_obs_mapping(states_config, obs_config)
-
-  model_sd <- flare::initiate_model_error(config, states_config, forecast_location)
+  
+  config_file_location <- file.path(config$run_config$forecast_location, "configuration_files")
+  model_sd <- flare::initiate_model_error(config, states_config, config_file_location)
 
   #Set inital conditions
   if(is.na(run_config$restart_file)){
@@ -166,7 +169,7 @@ if(length(forecast_files) > 0){
   aux_states_init$salt <- init$salt
 
   #Run EnKF
-  enkf_output <- flare::run_enkf_forecast(states_init = init$states,
+  enkf_output <- flare:::run_enkf_forecast(states_init = init$states, #Note - sometimes have to run set_up_model and add flare:::update_var
                                           pars_init = init$pars,
                                           aux_states_init = aux_states_init,
                                           obs = obs,

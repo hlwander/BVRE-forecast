@@ -15,7 +15,7 @@ source(file.path(lake_directory, "data_processing/R/temp_oxy_chla_qaqc.R"))
 source(file.path(lake_directory, "data_processing/R/extract_ch4.R"))
 source(file.path(lake_directory, "data_processing/R/extract_secchi.R"))
 source(file.path(lake_directory, "data_processing/R/in_situ_qaqc.R"))
-source(file.path(lake_directory, "data_processing/R/met_qaqc.R"))
+source(file.path(lake_directory, "data_processing/R/met_qaqc.R")) 
 source(file.path(lake_directory, "data_processing/R/inflow_qaqc.R")) #set to a single file for now...
 
 if(is.null(config$met_file)){

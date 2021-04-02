@@ -30,22 +30,12 @@ if(!file.exists(file.path(config$data_location, config$noaa_location))){
 if(!file.exists(file.path(config$data_location, config$manual_data_location))){
   stop("Missing Manual data GitHub repo")
 }
-if(!file.exists(file.path(config$data_location, config$realtime_inflow_data_location))){
-  stop("Missing Inflow data GitHub repo")
-}
 
 #update git data files if necessary
-setwd(file.path(config$data_location, config$realtime_insitu_location))
-system(paste0("git pull"))
-
+#carina data
 setwd(file.path(config$data_location, config$realtime_met_station_location))
 system(paste0("git pull"))
 
-setwd(file.path(config$data_location, config$noaa_location))
+#platform data
+setwd(file.path(config$data_location, "bvre-platform-data"))
 system(paste0("git pull"))
-
-setwd(file.path(config$data_location, config$manual_data_location))
-system(paste0("git pull"))
-
-#setwd(file.path(config$data_location, config$realtime_inflow_data_location))
-#system(paste0("git pull"))
