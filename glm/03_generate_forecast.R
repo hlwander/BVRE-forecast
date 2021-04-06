@@ -1,9 +1,7 @@
-# remotes::install_github("FLARE-forecast/flare", force = T)
 
 lake_directory <- getwd()
 forecast_location <- file.path(lake_directory, "glm")
 
-#### Move to 03_forecast_inflows.R
 config <- yaml::read_yaml(file.path(forecast_location, "configuration_files","configure_flare.yml"))
 run_config <- yaml::read_yaml(file.path(forecast_location, "configuration_files","run_configuration.yml"))
 
@@ -11,6 +9,9 @@ config$run_config <- run_config
 config$run_config$forecast_location <- forecast_location
 config$data_location <- file.path(lake_directory,"BVRE-data")
 config$qaqc_data_location <- file.path(lake_directory,"data_processing/qaqc_data")
+
+#source edited functions
+source("create_obs_matrix_hlw.R")
 
 # Set up timings
 start_datetime_local <- lubridate::as_datetime(paste0(config$run_config$start_day_local," ",config$run_config$start_time_local), tz = config$local_tzone)
@@ -32,8 +33,6 @@ noaa_forecast_path <- file.path(config$data_location, config$forecast_met_model,
 
 pacman::p_load(tidyverse, lubridate, noaaGEFSpoint)
 
-
-
 forecast_files <- list.files(noaa_forecast_path, full.names = TRUE)
 
 if(length(forecast_files) > 0){
@@ -41,7 +40,7 @@ if(length(forecast_files) > 0){
   message("Forecasting inflow and outflows")
   source(paste0(lake_directory, "/inflow_outflows/forecast_inflow_outflows.R"))
   # Forecast Inflows
-  forecast_inflows_outflows(inflow_obs = file.path(config$qaqc_data_location, "inflow_postQAQC.csv"),
+  forecast_inflows_outflows(inflow_obs =  file.path(config$qaqc_data_location,"inflow_postQAQC.csv"), #might want to change this because only goes to 2019
                             forecast_files = forecast_files,
                             obs_met_file = file.path(config$qaqc_data_location,"observed-met_fcre.nc"),
                             output_dir = config$data_location,
@@ -100,20 +99,21 @@ if(length(forecast_files) > 0){
                                                   end_datetime_local = end_datetime_local,
                                                   forecast_start_datetime = forecast_start_datetime_local,
                                                   use_forecasted_met = TRUE)
-  met_file_names <- met_out$filenames # list.files(noaa_forecast_path, full.names = TRUE)    
-  historical_met_error <- NA
+
+  met_file_names <- met_out$filenames
+  historical_met_error <- met_out$historical_met_error
 
   #Inflow Drivers (already done)
 
   inflow_forecast_path <- file.path(config$data_location, config$forecast_inflow_model,config$lake_name_code,lubridate::as_date(forecast_start_datetime_UTC),forecast_hour)
 
-  inflow_outflow_files <- flare::create_glm_inflow_outflow_files(inflow_file_dir = inflow_forecast_path, 
-                                                                 inflow_obs = cleaned_inflow_file,
+  inflow_outflow_files <- flare::create_glm_inflow_outflow_files(inflow_file_dir = inflow_forecast_path,
+                                                                 inflow_obs = paste0(config$data_location,"/FLOWS-NOAAGEFS-TMWB/bvre/2021-03-01/12/INFLOW-FLOWS-NOAAGEFS-TMWB_bvre_2021-03-01_2021-03-16_ens00.csv"),#cleaned_inflow_file,
                                                                  working_directory =config$run_config$execute_location,
                                                                  start_datetime_local = start_datetime_local,
                                                                  end_datetime_local = end_datetime_local,
                                                                  forecast_start_datetime_local = forecast_start_datetime_local,
-                                                                 use_future_inflow = FALSE,
+                                                                 use_future_inflow = TRUE,
                                                                  state_names = NULL)
 
   inflow_file_names <- config$specified_inflow1
@@ -133,20 +133,21 @@ if(length(forecast_files) > 0){
 
 
   states_config <- flare::generate_states_to_obs_mapping(states_config, obs_config)
-
-  model_sd <- flare::initiate_model_error(config, states_config, forecast_location)
+  
+  config_file_location <- file.path(config$run_config$forecast_location, "configuration_files")
+  model_sd <- flare::initiate_model_error(config, states_config, config_file_location)
 
   #Set inital conditions
   if(is.na(run_config$restart_file)){
-    init <- flare::generate_initial_conditions(states_config,
+    init <- flare::generate_initial_conditions(states_config, #start here then work down
                                                obs_config,
                                                pars_config,
                                                obs,
                                                config)
   }else{
 
-      nc <- ncdf4::nc_open(paste0(lake_directory, run_config$restart_file))
-      forecast <- ncdf4::ncvar_get(nc, "forecast")
+      nc <- ncdf4::nc_open(paste0(run_config$restart_file))
+      forecast <- ncdf4::ncvar_get(nc, "forecast") #issue here because NA is first value
       if(historical_met_error){
       restart_index <- max(which(forecast == 0)) + 1
       }else{
@@ -191,7 +192,7 @@ if(length(forecast_files) > 0){
   # obs_config = obs_config
 
   #Run EnKF
-  enkf_output <- flare::run_enkf_forecast(states_init = init$states,
+  enkf_output <- flare:::run_enkf_forecast(states_init = init$states, #Note - sometimes have to run set_up_model and add flare:::update_var
                                           pars_init = init$pars,
                                           aux_states_init = aux_states_init,
                                           obs = obs,
@@ -199,8 +200,8 @@ if(length(forecast_files) > 0){
                                           model_sd = model_sd,
                                           working_directory = config$run_config$execute_location,
                                           met_file_names = met_file_names,
-                                          inflow_file_names = config$specified_inflow1,#inflow_file_names,
-                                          outflow_file_names = config$specified_outflow1,#outflow_file_names,
+                                          inflow_file_names = file.path(config$data_location,config$specified_inflow1),#inflow_file_names,
+                                          outflow_file_names = file.path(config$data_location,config$specified_outflow1),#outflow_file_names,
                                           start_datetime = start_datetime_local,
                                           end_datetime = end_datetime_local,
                                           forecast_start_datetime = forecast_start_datetime_local,
@@ -234,3 +235,5 @@ if(length(forecast_files) > 0){
   yaml::write_yaml(run_config, file = file.path(forecast_location, "configuration_files","run_configuration.yml"))
 }
 
+flare::plotting_general(saved_file,
+                        qaqc_location = config$qaqc_data_location)

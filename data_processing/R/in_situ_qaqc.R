@@ -113,7 +113,7 @@ in_situ_qaqc <- function(insitu_obs_fname,
     d_clean <- rbind(d_clean,d_secchi)
   }
 
-  d_clean <- d_clean %>% select(date, hour, depth, value, variable)
+  d_clean <- d_clean %>% dplyr::select(date, hour, depth, value, variable)
 
   readr::write_csv(d_clean, cleaned_observations_file_long)
 

@@ -1,9 +1,9 @@
 restart_file: .na
-start_day_local: '2019-07-29'
+start_day_local: '2021-03-10'
 start_time_local: '07:00:00'
 end_day_local: .na
-forecast_start_day_local: '2019-07-30'
-forecast_horizon: 5.0
+forecast_start_day_local: '2021-03-20'
+forecast_horizon: 16.0
 forecast_project_id: bvre_flare
 sim_name: bvre
 forecast_sss_on: no

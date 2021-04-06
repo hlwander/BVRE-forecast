@@ -15,12 +15,12 @@ source(file.path(lake_directory, "data_processing/R/temp_oxy_chla_qaqc.R"))
 source(file.path(lake_directory, "data_processing/R/extract_ch4.R"))
 source(file.path(lake_directory, "data_processing/R/extract_secchi.R"))
 source(file.path(lake_directory, "data_processing/R/in_situ_qaqc.R"))
-source(file.path(lake_directory, "data_processing/R/met_qaqc.R"))
+source(file.path(lake_directory, "data_processing/R/met_qaqc.R")) 
 source(file.path(lake_directory, "data_processing/R/inflow_qaqc.R")) #set to a single file for now...
 
 if(is.null(config$met_file)){
   met_qaqc(realtime_file = file.path(config$data_location, config$met_raw_obs_fname[1]),
-           qaqc_file = file.path(config$data_location, config$met_raw_obs_fname[2]),
+           qaqc_file = NA,#file.path(config$data_location, config$met_raw_obs_fname[2]), #2021 QAQC not on EDI yet
            cleaned_met_file_dir = config$qaqc_data_location,
            input_file_tz = "EST",
            local_tzone = config$local_tzone,
@@ -31,7 +31,7 @@ if(is.null(config$met_file)){
 
 cleaned_inflow_file <- paste0(config$qaqc_data_location, "/inflow_postQAQC.csv")
 
-if(is.null(config$inflow1_file)){
+if(is.null(config$inflow1_file)){ #only relevant if we have observations
   inflow_qaqc(realtime_file = file.path(config$data_location, config$inflow_raw_file1),
               #qaqc_file = file.path(config$data_location, config$inflow_raw_file1[2]),
               nutrients_file = file.path(config$data_location, config$nutrients_fname),
