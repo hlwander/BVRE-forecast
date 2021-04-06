@@ -119,7 +119,7 @@ default_blue_ice_thickness_init: 0.0
 ##############################
 ##  EnKF setup
 ##############################
-ensemble_size:  221 #221 #441
+ensemble_size:  21 #221 #441
 localization_distance: .na #distance in meters were covariances in the model error are used
 vert_decorr_length: 5.0
 no_negative_states: TRUE

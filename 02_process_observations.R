@@ -58,7 +58,7 @@ if(is.null(config$combined_obs_file)){
   file.copy(file.path(config$data_location,config$combined_obs_file), cleaned_observations_file_long, overwrite = TRUE)
 }
 
-  file.copy(file.path(config$data_location,config$sss_fname), file.path(config$qaqc_data_location,basename(config$sss_fname)))
+file.copy(file.path(config$data_location,config$sss_fname), file.path(config$qaqc_data_location,basename(config$sss_fname)))
 
 if(!is.null(config$specified_sss_inflow_file)){
   file.copy(file.path(config$data_location,config$specified_sss_inflow_file), file.path(config$qaqc_data_location,basename(config$specified_sss_inflow_file)))

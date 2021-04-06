@@ -191,7 +191,7 @@ if(length(forecast_files) > 0){
   # obs_config = obs_config
 
   #Run EnKF
-  enkf_output <- run_enkf_forecast(states_init = init$states,
+  enkf_output <- flare::run_enkf_forecast(states_init = init$states,
                                           pars_init = init$pars,
                                           aux_states_init = aux_states_init,
                                           obs = obs,
@@ -215,7 +215,7 @@ if(length(forecast_files) > 0){
   saved_file <- flare::write_forecast_netcdf(enkf_output,
                                              forecast_location = config$run_config$forecast_location)
   
-  flare::plotting_general("C:/Users/mooret/Desktop/Git/BVRE-forecast/glm/bvre_H_2019_07_27_2019_07_29_F_5_20210321T162203.nc",
+  flare::plotting_general(saved_file,
                           qaqc_location = config$qaqc_data_location)
 
   #Create EML Metadata
@@ -227,7 +227,7 @@ if(length(forecast_files) > 0){
 
   run_config$start_day_local <- run_config$forecast_start_day_local
   run_config$forecast_start_day_local <- as.character(lubridate::as_date(run_config$forecast_start_day_local) + lubridate::days(1))
-  run_config$restart_file <- saved_file
+  run_config$restart_file <- NA# saved_file
   yaml::write_yaml(run_config, file = file.path(forecast_location, "configuration_files","run_configuration.yml"))
 }else{
   run_config$forecast_start_day_local <- as.character(lubridate::as_date(run_config$forecast_start_day_local) + lubridate::days(1))
