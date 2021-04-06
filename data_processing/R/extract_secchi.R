@@ -6,7 +6,7 @@ extract_secchi <- function(fname,
   d <- read_csv(fname,
                 col_types = readr::cols()) %>%
     filter(Reservoir == "BVR" & Site == 50) %>%
-    select(DateTime, Secchi_m) %>%
+    dplyr::select(DateTime, Secchi_m) %>%
     mutate(DateTime = mdy_hm(DateTime),
            DateTime = force_tz(DateTime, local_tzone)) %>%
     group_by(DateTime) %>%
@@ -15,7 +15,7 @@ extract_secchi <- function(fname,
     pivot_longer(cols = -c(timestamp), names_to = "variable", values_to = "value") %>%
     mutate(depth = NA) %>%
     filter(!is.na(value)) %>%
-    select(timestamp , depth, value, variable)
+    dplyr::select(timestamp , depth, value, variable)
 
   return(d)
 }

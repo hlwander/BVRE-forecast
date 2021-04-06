@@ -39,7 +39,7 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
                         AirTemp = AirTemp,
                         Rain = Rain)
   obs_met <- met %>% 
-    dplyr::filter(time >= (noaa_met_time[1] - lubridate::days(1)) & time < noaa_met_time[1])
+    dplyr::filter(met$time >= (noaa_met_time[1] - lubridate::days(1)) & met$time < noaa_met_time[1])
 
   init_flow_temp <- inflow %>%
     dplyr::filter(time == lubridate::as_date(noaa_met_time[1]) - lubridate::days(1))
@@ -52,7 +52,6 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   #load packages
   if (!require("pacman"))install.packages("pacman")
   pacman::p_load(httr,EcoHydRology,GSODR,curl,elevatr,raster,soilDB,rgdal,lattice,lubridate, tidyverse)
-  source(paste0(lake_directory, "/mapunit_geom_by_ll_bbox_hlw.R"))
   
   #soil data
   #url= "https://websoilsurvey.sc.egov.usda.gov/DSD/Download/AOI/wfu1odcjhsdqqd4capo2doux/wss_aoi_2021-03-22_13-16-30.zip"
@@ -65,7 +64,7 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   
   #Using ROANOKE RIVER AT NIAGARA, VA  usgs gage to use as a template (will write over with BVR-specific data) 
   myflowgage_id="02056000"
-  myflowgage=get_usgs_gage(myflowgage_id,begin_date = "2019-01-01",end_date = "2021-03-22")
+  myflowgage=get_usgs_gage(myflowgage_id,begin_date = "2019-01-01",end_date = "2021-04-05")
   
   #only select dates during the forecast period
   myflowgage$flowdata <- myflowgage$flowdata[myflowgage$flowdata$mdate >= run_date-1 & myflowgage$flowdata$mdate <= run_date + 15,] 
@@ -79,10 +78,10 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   myflowgage$flowdata[["flow"]] <- NA
   
   # Grab the necessary soil and elevation spatial layers and parameters (usgs)
-  #url="https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHD/HU8/HighResolution/Shape/NHD_H_03010101_HU8_Shape.zip"
-  #curl_download(url,"NHD_H_03010101_HU8_Shape.zip")
-  #unzip("NHD_H_03010101_HU8_Shape.zip",exdir="03010101") 
-  
+ #url="https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHD/HU8/HighResolution/Shape/NHD_H_03010101_HU8_Shape.zip"
+ #curl_download(url,"NHD_H_03010101_HU8_Shape.zip")
+ #unzip("NHD_H_03010101_HU8_Shape.zip",exdir="03010101") 
+ 
   #set coordinates to plot DEM raster
   degdist=sqrt(myflowgage$area*4)/200
   mybbox = matrix(c(
@@ -91,11 +90,10 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
     ncol = 2, byrow = TRUE)
   
   streams=readOGR("03010101/Shape/NHDFlowline.dbf") 
-  #mysoil = NULL
   
- # while(is.null(mysoil)){
-  mysoil <- mapunit_geom_by_ll_bbox(mybbox)
-#  }
+  #mysoil <- mapunit_geom_by_ll_bbox(mybbox)
+  #writeOGR(obj=mysoil, dsn="soils", layer="mysoil", driver="ESRI Shapefile")
+  mysoil <- readOGR(dsn="soils")
   
   # Associate mukey with cokey from component
   mukey_statement = format_SQL_in_statement(unique(mysoil$mukey))
@@ -110,6 +108,7 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   # Aggregate max values of ksat_r,awc_r, and hzdepb_r
   mu2ch=merge(mu2co,co2ch)
   mu2chmax=aggregate(mu2ch,list(mu2ch$mukey),max)
+  
   
   #set projection
   proj4string(streams)
@@ -183,7 +182,7 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
                     TEMP = NA)
     
     
-    curr_met_daily$TEMP[1] <- init_flow_temp$TEMP
+    #curr_met_daily$TEMP[1] <- init_flow_temp$TEMP
 
     if(inflow_process_uncertainty == TRUE){
       inflow_error <- rnorm(nrow(curr_met_daily), 0, config$future_inflow_flow_error)
@@ -293,10 +292,11 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
 
      #forecasted inflow
      curr_met_daily$FLOW = TMWBsol$TMWB$Qpred_m3pd
+     curr_met_daily$TEMP[1] <- curr_met_daily$AirTemp[1] 
                                                                      
      for(i in 2:nrow(curr_met_daily)){                                                  
        curr_met_daily$TEMP[i] = config$future_inflow_temp_coeff[1] +
-       config$future_inflow_temp_coeff[2] * curr_met_daily$TEMP[i-1] +
+       config$future_inflow_temp_coeff[2] * curr_met_daily$AirTemp[i-1] +
        config$future_inflow_temp_coeff[3] * curr_met_daily$AirTemp_lag1[i] + temp_error[i]
     }
 

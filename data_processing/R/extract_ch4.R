@@ -10,7 +10,7 @@ extract_ch4 <- function(fname,
            DateTime = DateTime + hours(12))%>%
     filter(Reservoir == "BVR" & Depth_m < 13.5) %>%
     mutate(CH4 = ch4_umolL * 1000 * 0.001) %>%
-    select(DateTime, Depth_m,CH4,Rep) %>%
+    dplyr::select(DateTime, Depth_m,CH4,Rep) %>%
     group_by(DateTime,Depth_m) %>%
     summarise(CH4 = mean(CH4, na.rm = TRUE)) %>%
     ungroup() %>%
@@ -19,7 +19,7 @@ extract_ch4 <- function(fname,
     pivot_longer(cols = -c(timestamp, depth), names_to = "variable", values_to = "value") %>%
     mutate(method = "grab_sample") %>%
     filter(!is.na(value)) %>%
-    select(timestamp , depth, value, variable, method)
+    dplyr::select(timestamp , depth, value, variable, method)
 
   if(!is.na(focal_depths)){
     d <- d %>% filter(depth %in% focal_depths)

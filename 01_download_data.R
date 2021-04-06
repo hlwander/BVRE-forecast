@@ -39,3 +39,4 @@ system(paste0("git pull"))
 #platform data
 setwd(file.path(config$data_location, "bvre-platform-data"))
 system(paste0("git pull"))
+

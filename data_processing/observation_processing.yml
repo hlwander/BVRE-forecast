@@ -64,9 +64,9 @@ manual_data_location: BVR-GLM/inputs
 specified_inflow1: BVR-GLM/inputs/BVR_inflow_2014_2019_20200917_allfractions_2poolsDOC_withch4_nldasInflow.csv
 specified_outflow1: BVR-GLM/inputs/BVR_spillway_outflow_2014_2019_20200917_nldasInflow.csv
 
-insitu_obs_fname: 
-    - bvre-platform-data/BVRplatform.csv
-    - BVR_EDI_2020.csv
+insitu_obs_fname: bvre-platform-data/BVRplatform.csv
+# BVR_EDI_2020.csv #getting rid of this for forecasts after EDI publication
+
 secchi_fname: BVR-GLM/field_data/Secchi_depth_2013-2019.csv
 ctd_fname: BVR-GLM/field_data/CTD_final_2013_2020.csv
 ch4_fname: BVR-GLM/field_data/field_gasses.csv

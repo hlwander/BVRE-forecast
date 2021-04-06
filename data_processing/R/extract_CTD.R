@@ -33,7 +33,7 @@ extract_CTD <- function(fname,
     mutate(Date = force_tz(Date, tzone = input_file_tz),
            Date = with_tz(Date, tzone = local_tzone)) %>%
     filter(Reservoir == "BVR" & Site == "50") %>%
-    select(Date, Depth_m, Temp_C, DO_mgL, Chla_ugL) %>%
+    dplyr::select(Date, Depth_m, Temp_C, DO_mgL, Chla_ugL) %>%
     rename("timestamp" = Date,
            "depth" = Depth_m,
            "temperature" = Temp_C,
@@ -44,7 +44,7 @@ extract_CTD <- function(fname,
            oxygen = config$ctd_2_exo_sensor_do[1] + config$ctd_2_exo_sensor_do[2] * oxygen) %>%
     pivot_longer(cols = c("temperature", "oxygen", "chla"), names_to = "variable", values_to = "value") %>%
     mutate(method = "ctd") %>%
-    select(timestamp , depth, value, variable, method) %>%
+    dplyr::select(timestamp , depth, value, variable, method) %>%
     mutate(timestamp = lubridate::as_datetime(timestamp, tz = local_tzone))
   
   #add hour to 2019 data

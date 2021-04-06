@@ -88,7 +88,7 @@ met_qaqc <- function(realtime_file,
     d1 <- data.frame(time = d1$TIMESTAMP, ShortWave = d1$SR01Up_Avg, LongWave = d1$IR01UpCo_Avg, AirTemp = d1$AirTC_Avg, RelHum = d1$RH, WindSpeed = d1$WS_ms_Avg, Rain = d1$Rain_mm_Tot, pressure = d1$BP_kPa_Avg)
     d2 <- data.frame(time = d2$TIMESTAMP, ShortWave = d2$ShortwaveRadiationUp_Average_W_m2, LongWave = d2$InfaredRadiationUp_Average_W_m2, AirTemp = d2$AirTemp_Average_C, RelHum = d2$RH_percent, WindSpeed = d2$WindSpeed_Average_m_s, Rain = d2$Rain_Total_mm, pressure = d2$BP_Average_kPa)
 
-    d1 <- d1[which(d1$time > d2$time[nrow(d2)] | d1$time < d2$time[1]), ] #this is a problem until I find the 2021 data
+    d1 <- d1[which(d1$time > d2$time[nrow(d2)] | d1$time < d2$time[1]), ] 
 
     d <- rbind(d2, d1)
 
@@ -191,7 +191,7 @@ met_qaqc <- function(realtime_file,
                                                   press = d$air_pressure)
 
   d <- d %>%
-    select(time, air_temperature, air_pressure, relative_humidity, surface_downwelling_longwave_flux_in_air, surface_downwelling_shortwave_flux_in_air, precipitation_flux, specific_humidity, wind_speed)
+    dplyr::select(time, air_temperature, air_pressure, relative_humidity, surface_downwelling_longwave_flux_in_air, surface_downwelling_shortwave_flux_in_air, precipitation_flux, specific_humidity, wind_speed)
 
   cf_var_names1 <- c("air_temperature", "air_pressure", "relative_humidity", "surface_downwelling_longwave_flux_in_air",
                      "surface_downwelling_shortwave_flux_in_air", "precipitation_flux","specific_humidity","wind_speed")
@@ -220,7 +220,7 @@ met_qaqc <- function(realtime_file,
              air_temperature = air_temperature + 273.15,
              relative_humidity = relative_humidity/ 100,
              precipitation_flux = precipitation_flux * 1000 / (60 * 60 * 24)) %>%
-      select(all_of(names(d)))
+      dplyr::select(all_of(names(d)))
 
     d_nldas$time <- lubridate::with_tz(d_nldas$time, tzone = "UTC")
 
@@ -253,7 +253,7 @@ met_qaqc <- function(realtime_file,
 
   model_name <- "observed-met"
   site <- "fcre"
-  lat <- 37.27
+  lat <- 37.31
   lon <- 360-79.9
   start_time <- dplyr::first((d$time))
   end_time <- dplyr::last((d$time))

@@ -15,14 +15,14 @@ extract_nutrients <- function(fname,
            SRP = SRP_ugL * 1000 * 0.001 * (1/95),
            DOC = DOC_mgL* 1000 * (1/12.01),
            DIC = DIC_mgL*1000*(1/52.515)) %>%
-    select(DateTime, Depth_m, TN, TP, NH4, NO3NO2, SRP, DOC, DIC) %>%
+    dplyr::select(DateTime, Depth_m, TN, TP, NH4, NO3NO2, SRP, DOC, DIC) %>%
     rename("timestamp" = DateTime,
            "depth" = Depth_m,
            "fdom" = DOC) %>%
     pivot_longer(cols = -c(timestamp, depth), names_to = "variable", values_to = "value") %>%
     mutate(method = "grab_sample") %>%
     filter(!is.na(value)) %>%
-    select(timestamp , depth, value, variable, method)
+    dplyr::select(timestamp , depth, value, variable, method)
 
   if(!is.na(focal_depths)){
     d <- d %>% filter(depth %in% focal_depths)

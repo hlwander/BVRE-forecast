@@ -109,7 +109,7 @@ inflow_qaqc <- function(realtime_file,
 
 # read in calculated inflow csv, only select some cols
 inflow_combined <- read.csv(paste0(config$data_location, "/BVR-GLM/inputs/BVR_inflow_2014_2019_20200708_allfractions_2poolsDOC_withch4.csv")) %>%
-                    select(time,FLOW,TEMP,SALT)
+                    dplyr::select(time,FLOW,TEMP,SALT)
 inflow_combined$time <- as.Date(inflow_combined$time)
 
   #### BRING IN THE NUTRIENTS
@@ -138,7 +138,7 @@ inflow_combined$time <- as.Date(inflow_combined$time)
              #CAR_dic = DIC_mgL*1000*(1/52.515),
              #CAR_ch4 = 0.0,
              SIL_rsi = 126.3866) %>%
-      select(time, NIT_amm, NIT_nit, PHS_frp, OGM_doc, OGM_docr, OGM_poc, OGM_don,OGM_donr, OGM_dop, OGM_dopr, OGM_pop, OGM_pon,SIL_rsi)
+      dplyr::select(time, NIT_amm, NIT_nit, PHS_frp, OGM_doc, OGM_docr, OGM_poc, OGM_don,OGM_donr, OGM_dop, OGM_dopr, OGM_pop, OGM_pon,SIL_rsi)
 
     #add temp and oxy to the inflow dataframe
     temp <- read.csv(paste0(config$data_location,"/BVR-GLM/field_data/CleanedObsTemp.csv")) %>% rename("time" = DateTime)
@@ -197,7 +197,7 @@ inflow_combined$time <- as.Date(inflow_combined$time)
              #CAR_dic = ifelse(is.na(CAR_dic.x), CAR_dic.y,CAR_dic.x)) %>%
       #CAR_ch4 = ifelse(is.na(CAR_ch4.x), CAR_ch4.y,CAR_ch4.x),
              SIL_rsi = ifelse(is.na(SIL_rsi.x), SIL_rsi.y,SIL_rsi.x))  %>%
-      select(time, FLOW,TEMP,SALT,OXY_oxy, SIL_rsi, NIT_amm,NIT_nit,PHS_frp,OGM_doc,OGM_docr,OGM_poc,OGM_don,OGM_donr,OGM_pon,OGM_dop,OGM_dopr,OGM_pop)
+      dplyr::select(time, FLOW,TEMP,SALT,OXY_oxy, SIL_rsi, NIT_amm,NIT_nit,PHS_frp,OGM_doc,OGM_docr,OGM_poc,OGM_don,OGM_donr,OGM_pon,OGM_dop,OGM_dopr,OGM_pop)
 
   }else{
     inflow_clean <- inflow_combined
