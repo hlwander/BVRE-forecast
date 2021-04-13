@@ -123,18 +123,16 @@ if(length(forecast_files) > 0){
   #Create observation matrix
   # source("create_obs_matrix_hlw.R")
   
-  # Set obs hour
+  # Set obs hour to 7
   # d <- readr::read_csv(cleaned_observations_file_long)
   # d1 <- d %>%
   #   dplyr::filter(variable == obs_config$target_variable[1],
-  #                 date == lubridate::as_date(start_datetime_local)#,
-  #                 # (is.na(hour) | hour == lubridate::hour(full_time_local[k])),
-  #                 # abs(depth-modeled_depths[j]) < obs_config$distance_threshold[i]
-  #   )
+  #                 date == lubridate::as_date(start_datetime_local))
+  # Write new qaqc file with just the one measurement and adjusted hour
   # d1$hour <- 7
   # readr::write_csv(d1, file = file.path(config$qaqc_data_location, "observations_postQAQC_long_v2.csv"))
   # cleaned_observations_file_long <- file.path(config$qaqc_data_location, "observations_postQAQC_long_v2.csv")
-  obs_config$distance_threshold <- 0.003
+  obs_config$distance_threshold <- 0.003 #  Play around with this to see which produces more observations
   
   obs <- flare::create_obs_matrix(cleaned_observations_file_long, #note to self - I manually changed the observations_postQAQC_long and changed all 7/11 observations to 7/27
                                   obs_config,                   
@@ -142,7 +140,7 @@ if(length(forecast_files) > 0){
                                   end_datetime_local,
                                   local_tzone = config$local_tzone,
                                   modeled_depths = config$modeled_depths)
-  obs[1,,]
+  obs[1,,] # View observations and check for NA's
 
   #Set observations in the "future" to NA
   full_time_forecast <- seq(start_datetime_local, end_datetime_local, by = "1 day")
