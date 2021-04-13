@@ -1,5 +1,5 @@
 restart_file: .na
-start_day_local: '2019-08-01'
+start_day_local: '2019-07-15'
 start_time_local: '07:00:00'
 end_day_local: .na
 forecast_start_day_local: '2019-08-10'
