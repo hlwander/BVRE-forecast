@@ -11,7 +11,7 @@ config$data_location <- file.path(lake_directory,"BVRE-data")
 config$qaqc_data_location <- file.path(lake_directory,"data_processing/qaqc_data")
 
 #source edited functions
-source("create_obs_matrix_hlw.R")
+# source("create_obs_matrix_hlw.R")
 
 # Set up timings
 start_datetime_local <- lubridate::as_datetime(paste0(config$run_config$start_day_local," ",config$run_config$start_time_local), tz = config$local_tzone)
@@ -116,8 +116,8 @@ if(length(forecast_files) > 0){
                                                                  use_future_inflow = TRUE,
                                                                  state_names = NULL)
 
-  inflow_file_names <- config$specified_inflow1
-  outflow_file_names <-config$specified_outflow1
+  inflow_file_names <- inflow_outflow_files$inflow_file_names # config$specified_inflow1
+  outflow_file_names <- inflow_outflow_files$inflow_file_names # config$specified_outflow1
 
   #Create observation matrix
   obs <- flare::create_obs_matrix(cleaned_observations_file_long, #note to self - I manually changed the observations_postQAQC_long and changed all 7/11 observations to 7/27
@@ -135,7 +135,7 @@ if(length(forecast_files) > 0){
   states_config <- flare::generate_states_to_obs_mapping(states_config, obs_config)
   
   config_file_location <- file.path(config$run_config$forecast_location, "configuration_files")
-  model_sd <- flare::initiate_model_error(config, states_config, config_file_location)
+  model_sd <- flare::initiate_model_error(config, states_config, config$run_config$forecast_location)
 
   #Set inital conditions
   if(is.na(run_config$restart_file)){
@@ -173,23 +173,24 @@ if(length(forecast_files) > 0){
   aux_states_init$lake_depth <- init$lake_depth
   aux_states_init$salt <- init$salt
   
-  # states_init = init$states
-  # pars_init = init$pars
-  # aux_states_init = aux_states_init
-  # obs = obs
-  # obs_sd = obs_config$obs_sd
-  # model_sd = model_sd
-  # working_directory = config$run_config$execute_location
-  # met_file_names = met_file_names
-  # inflow_file_names = config$specified_inflow1#inflow_file_names
-  # outflow_file_names = config$specified_outflow1#outflow_file_names
-  # start_datetime = start_datetime_local
-  # end_datetime = end_datetime_local
-  # forecast_start_datetime = forecast_start_datetime_local
-  # config = config
-  # pars_config = pars_config
-  # states_config = states_config
-  # obs_config = obs_config
+  states_init = init$states
+  pars_init = init$pars
+  aux_states_init = aux_states_init
+  obs = obs
+  obs_sd = obs_config$obs_sd
+  model_sd = model_sd
+  working_directory = config$run_config$execute_location
+  met_file_names = met_file_names
+  inflow_file_names = inflow_file_names
+  outflow_file_names = outflow_file_names
+  start_datetime = start_datetime_local
+  end_datetime = end_datetime_local
+  forecast_start_datetime = forecast_start_datetime_local
+  config = config
+  pars_config = pars_config
+  states_config = states_config
+  obs_config = obs_config
+  management = NULL
 
   #Run EnKF
   enkf_output <- flare:::run_enkf_forecast(states_init = init$states, #Note - sometimes have to run set_up_model and add flare:::update_var
@@ -200,8 +201,8 @@ if(length(forecast_files) > 0){
                                           model_sd = model_sd,
                                           working_directory = config$run_config$execute_location,
                                           met_file_names = met_file_names,
-                                          inflow_file_names = file.path(config$data_location,config$specified_inflow1),#inflow_file_names,
-                                          outflow_file_names = file.path(config$data_location,config$specified_outflow1),#outflow_file_names,
+                                          inflow_file_names = inflow_file_names,
+                                          outflow_file_names = outflow_file_names,
                                           start_datetime = start_datetime_local,
                                           end_datetime = end_datetime_local,
                                           forecast_start_datetime = forecast_start_datetime_local,
@@ -211,6 +212,8 @@ if(length(forecast_files) > 0){
                                           obs_config = obs_config
 
   )
+  
+  GLM3r::run_glm()
 
   # Save forecast
   saved_file <- flare::write_forecast_netcdf(enkf_output,
