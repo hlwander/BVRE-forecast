@@ -229,8 +229,8 @@ if(length(forecast_files) > 0){
   )
   
   
-  glmtools::get_surface_height("output.nc")
-  glmtools::get_var(var_name = "temp")
+  # glmtools::get_surface_height("output.nc")
+  # glmtools::get_var(var_name = "temp")
   # nc <- ncdf4::nc_open("output.nc")
   # layers <- ncdf4::ncvar_get(nc, "NS")
   
