@@ -51,7 +51,7 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   
   #load packages
   if (!require("pacman"))install.packages("pacman")
-  pacman::p_load(httr,EcoHydRology,GSODR,curl,elevatr,raster,soilDB,rgdal,lattice,lubridate, tidyverse)
+  pacman::p_load(httr,EcoHydRology,GSODR,curl,elevatr,raster,soilDB,rgdal,lattice,lubridate, tidyverse,dplyr)
   
   #soil data
   #url= "https://websoilsurvey.sc.egov.usda.gov/DSD/Download/AOI/wfu1odcjhsdqqd4capo2doux/wss_aoi_2021-03-22_13-16-30.zip"
@@ -109,7 +109,6 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   mu2ch=merge(mu2co,co2ch)
   mu2chmax=aggregate(mu2ch,list(mu2ch$mukey),max)
   
-  
   #set projection
   proj4string(streams)
   proj4string(mysoil)<- "+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80 +towgs84=0,0,0"
@@ -164,7 +163,7 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
     curr_met_daily <- noaa_met %>%
       dplyr::mutate(AirTemp = AirTemp - 273.15,
                     Rain = Rain * (60 * 60 * 24)) %>% #was /1000 to get to m/d, but SnowMelt needs mm/d units
-      dplyr::mutate(mdate = lubridate::with_tz(time, tzone = local_tzone),
+      dplyr::mutate(mdate = lubridate::with_tz(noaa_met$time, tzone = local_tzone),
                     mdate = mdate - lubridate::hours(lubridate::hour(time[1]))) %>%
       dplyr::mutate(mdate = lubridate::as_date(mdate)) %>%
       dplyr::group_by(mdate) %>%
@@ -284,16 +283,16 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
       # run the TMWBModel
       TMWBsol=TMWBModel(myflowgage)
       # Convert area from km to m (10^6) and Qpred from mm to m (10^-3) 
-      TMWBsol$TMWB$Qpred_m3pd=TMWBsol$TMWB$Qpred*TMWBsol$area*10^3
+      TMWBsol$TMWB$Qpred_m3pd=TMWBsol$TMWB$Qpred*TMWBsol$area*10^3 #* 0.05 #trying to manually scale down just to get glm to run - will eventually calibrate pars to get better inflow estimates
       # Convert Qpred_m3pd to Qpred_m3ps (1m3/s = 86400 m3/d)
-      #TMWBsol$TMWB$Qpred_m3ps=TMWBsol$TMWB$Qpred_m3pd/86400
+      TMWBsol$TMWB$Qpred_m3ps=TMWBsol$TMWB$Qpred_m3pd/86400
             
-      plot(TMWBsol$TMWB$mdate,TMWBsol$TMWB$Qpred_m3pd,col="red", type='l')
+      plot(TMWBsol$TMWB$mdate,TMWBsol$TMWB$Qpred_m3ps,col="red", type='l')
 
      #forecasted inflow
-     curr_met_daily$FLOW = TMWBsol$TMWB$Qpred_m3pd
+     curr_met_daily$FLOW = TMWBsol$TMWB$Qpred_m3ps
+     
      curr_met_daily$TEMP[1] <- curr_met_daily$AirTemp[1] 
-                                                                     
      for(i in 2:nrow(curr_met_daily)){                                                  
        curr_met_daily$TEMP[i] = config$future_inflow_temp_coeff[1] +
        config$future_inflow_temp_coeff[2] * curr_met_daily$AirTemp[i-1] +

@@ -28,7 +28,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
   DO_FLAG_COLS <- c(46,47,48) 
   
   # depths at which DO is measured
-  DO_DEPTHS <- c(1.5, 6, 13) #adrienne put 7.5 and 0.5 as the last depths??
+  DO_DEPTHS <- c(1.5, 6, 13) #these are essentially meaningless because of the drastic water level changes...
 
   # EXO sonde sensor data that differs from the mean by more than the standard deviation multiplied by this factor will
   # either be replaced with NA and flagged (if between 2018-10-01 and 2019-03-01) or just flagged (otherwise)
@@ -225,6 +225,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   #create depth column
   catdata=catdata%>%mutate(Depth_m_13=Lvl_psi_13*0.70455)#1psi=2.31ft, 1ft=0.305m
+  #note that there are a decent amount of negative depths at 13m so unless BVR drained, this isn't the most robust method w/o additional QAQC
   
   # temp qaqc ----
   
@@ -435,7 +436,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d_exo_temp <- d %>%
     dplyr::select(timestamp, wtr_1_5_exo) %>%
-    rename("1_5" = wtr_1_5_exo) %>%
+    rename("1.5" = wtr_1_5_exo) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "temperature",
            method = "exo_sensor",
@@ -452,7 +453,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d_exo_do <- d %>%
     dplyr::select(timestamp, doobs_1_5) %>%
-    rename("1_5" = doobs_1_5) %>%
+    rename("1.5" = doobs_1_5) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "oxygen",
            method = "exo_sensor",
@@ -460,7 +461,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d_exo_fdom <- d %>%
     dplyr::select(timestamp, fDOM_1_5) %>%
-    rename("1_5" = fDOM_1_5) %>%
+    rename("1.5" = fDOM_1_5) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "fdom",
            method = "exo_sensor",
@@ -468,7 +469,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d_exo_chla <- d %>%
     dplyr::select(timestamp, Chla_1_5) %>%
-    rename("1_5" = Chla_1_5) %>%
+    rename("1.5" = Chla_1_5) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "chla",
            method = "exo_sensor",
@@ -476,7 +477,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d_exo_bgapc <- d %>%
     dplyr::select(timestamp, bgapc_1_5) %>%
-    rename("1_5" = bgapc_1_5) %>%
+    rename("1.5" = bgapc_1_5) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "bgapc",
            method = "exo_sensor",
@@ -589,7 +590,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
     d_exo_do_depth <- d_depth %>%
       dplyr::select(timestamp, doobs_1_5) %>%
-      rename("1_5" = doobs_1_5) %>%
+      rename("1.5" = doobs_1_5) %>%
       pivot_longer(cols = -timestamp, names_to = "depth", values_to = "depth_exo") %>%
       mutate(variable = "oxygen",
              method = "exo_sensor")
@@ -604,7 +605,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
     d_exo_fdom_depth <- d_depth %>%
       dplyr::select(timestamp, fDOM_1_5) %>%
-      rename("1_5" = fDOM_1_5) %>%
+      rename("1.5" = fDOM_1_5) %>%
       pivot_longer(cols = -timestamp, names_to = "depth", values_to = "depth_exo") %>%
       mutate(variable = "oxygen",
              method = "exo_sensor")
@@ -619,7 +620,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
     d_exo_chla_depth <- d_depth %>%
       dplyr::select(timestamp, Chla_1_5) %>%
-      rename("1_5" = Chla_1_5) %>%
+      rename("1.5" = Chla_1_5) %>%
       pivot_longer(cols = -timestamp, names_to = "depth", values_to = "depth_exo") %>%
       mutate(variable = "chla",
              method = "exo_sensor")
@@ -634,7 +635,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
     d_exo_bgapc_depth <- d_depth %>%
       dplyr::select(timestamp, bgapc_1_5) %>%
-      rename("1_5" = bgapc_1_5) %>%
+      rename("1.5" = bgapc_1_5) %>%
       pivot_longer(cols = -timestamp, names_to = "depth", values_to = "depth_exo") %>%
       mutate(variable = "bgapc",
              method = "exo_sensor")

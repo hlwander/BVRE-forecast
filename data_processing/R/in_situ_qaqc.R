@@ -84,8 +84,8 @@ in_situ_qaqc <- function(insitu_obs_fname,
 
     if(config$averaging_period[i] == "1 hour"){
       d_curr <- d_curr %>%
-      dplyr::mutate(hour = lubridate::hour(datetime)) %>%
-      dplyr::filter(hour == lubridate::hour(first_day))
+      dplyr::mutate(hour = lubridate::hour(datetime)) #%>%
+     # dplyr::filter(hour == lubridate::hour(first_day))  #getting rid of this filter because I need more observations!
     }else{
       d_curr <- d_curr %>%
         dplyr::mutate(hour = NA)
@@ -93,7 +93,7 @@ in_situ_qaqc <- function(insitu_obs_fname,
 
     d_curr <- d_curr %>% dplyr::select(-datetime)
 
-    d_clean <- rbind(d_clean,  d_curr)
+    d_clean <- rbind(d_clean,  d_curr) 
   }
 
   d_clean <- d_clean %>% tidyr::drop_na(value)
@@ -110,7 +110,7 @@ in_situ_qaqc <- function(insitu_obs_fname,
       dplyr::mutate(hour = NA) %>%
       dplyr::select(-timestamp)
 
-    d_clean <- rbind(d_clean,d_secchi)
+    d_clean <- rbind(d_clean,d_secchi) 
   }
 
   d_clean <- d_clean %>% dplyr::select(date, hour, depth, value, variable)
@@ -120,3 +120,4 @@ in_situ_qaqc <- function(insitu_obs_fname,
   #rm(d_clean, d, d_secchi, d_ch4, d_nutrients, d_ctd)
   #gc()
 }
+       

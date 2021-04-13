@@ -16,11 +16,11 @@ source(file.path(lake_directory, "data_processing/R/extract_ch4.R"))
 source(file.path(lake_directory, "data_processing/R/extract_secchi.R"))
 source(file.path(lake_directory, "data_processing/R/in_situ_qaqc.R"))
 source(file.path(lake_directory, "data_processing/R/met_qaqc.R")) 
-source(file.path(lake_directory, "data_processing/R/inflow_qaqc.R")) #set to a single file for now...
+source(file.path(lake_directory, "data_processing/R/inflow_qaqc.R")) 
 
 if(is.null(config$met_file)){
   met_qaqc(realtime_file = file.path(config$data_location, config$met_raw_obs_fname[1]),
-           qaqc_file = NA,#file.path(config$data_location, config$met_raw_obs_fname[2]), #2021 QAQC not on EDI yet
+           qaqc_file = file.path(config$data_location, config$met_raw_obs_fname[2]), #realtime QAQC not available so NA for 2021
            cleaned_met_file_dir = config$qaqc_data_location,
            input_file_tz = "EST",
            local_tzone = config$local_tzone,
