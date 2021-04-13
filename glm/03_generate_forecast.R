@@ -105,7 +105,7 @@ if(length(forecast_files) > 0){
   inflow_forecast_path <- file.path(config$data_location, config$forecast_inflow_model,config$lake_name_code,lubridate::as_date(forecast_start_datetime_UTC),forecast_hour)
 
   inflow_outflow_files <- flare::create_glm_inflow_outflow_files(inflow_file_dir = inflow_forecast_path,
-                                                                 inflow_obs = paste0(config$data_location,"/FLOWS-NOAAGEFS-TMWB/bvre/2021-03-01/12/INFLOW-FLOWS-NOAAGEFS-TMWB_bvre_2021-03-01_2021-03-16_ens00.csv"),#cleaned_inflow_file,
+                                                                 inflow_obs = cleaned_inflow_file,#paste0(config$data_location,"/FLOWS-NOAAGEFS-TMWB/bvre/2021-03-01/12/INFLOW-FLOWS-NOAAGEFS-TMWB_bvre_2021-03-01_2021-03-16_ens00.csv"),
                                                                  working_directory =config$run_config$execute_location,
                                                                  start_datetime_local = start_datetime_local,
                                                                  end_datetime_local = end_datetime_local,
@@ -117,7 +117,7 @@ if(length(forecast_files) > 0){
   outflow_file_names <-config$specified_outflow1
 
   #Create observation matrix
-  obs <- create_obs_matrix_hlw(cleaned_observations_file_long, #note to self - I manually changed the observations_postQAQC_long and changed all 7/11 observations to 7/28 for 2019 forecast
+  obs <- create_obs_matrix_hlw(cleaned_observations_file_long, 
                                   obs_config,
                                   start_datetime_local,           
                                   end_datetime_local,
@@ -171,7 +171,7 @@ if(length(forecast_files) > 0){
   aux_states_init$salt <- init$salt
 
   #Run EnKF
-  enkf_output <- flare:::run_enkf_forecast(states_init = init$states, #Note - sometimes have to run set_up_model and add flare:::update_var
+  enkf_output <- flare:::run_enkf_forecast(states_init = init$states, 
                                           pars_init = init$pars,
                                           aux_states_init = aux_states_init,
                                           obs = obs,

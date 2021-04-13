@@ -109,7 +109,7 @@ inflow_qaqc <- function(realtime_file,
 
 # read in calculated inflow csv, only select some cols
 inflow_combined <- read.csv(paste0(config$data_location, "/BVR-GLM/inputs/BVR_inflow_2014_2019_20200708_allfractions_2poolsDOC_withch4.csv")) %>%
-                    dplyr::select(time,FLOW,TEMP,SALT)
+                    dplyr::select(time,FLOW,TEMP,SALT) %>% mutate(FLOW = FLOW/86400) #convert flow to m3/s
 inflow_combined$time <- as.Date(inflow_combined$time)
 
   #### BRING IN THE NUTRIENTS
@@ -118,6 +118,7 @@ inflow_combined$time <- as.Date(inflow_combined$time)
 
     nutrients <- read_csv(nutrients_file, guess_max = 100000, col_types = readr::cols()) %>%
       filter(Reservoir == "BVR" & (Site == "100" | Site == "200")) %>%
+      group_by(DateTime) %>% summarise(across(c("TN_ugL":"DN_mgL"),mean)) %>%
       rename("time" = DateTime)  %>%
       mutate(time = as_date(time)) %>%
       mutate(NIT_amm = NH4_ugL*1000*0.001*(1/18.04),
@@ -141,10 +142,10 @@ inflow_combined$time <- as.Date(inflow_combined$time)
       dplyr::select(time, NIT_amm, NIT_nit, PHS_frp, OGM_doc, OGM_docr, OGM_poc, OGM_don,OGM_donr, OGM_dop, OGM_dopr, OGM_pop, OGM_pon,SIL_rsi)
 
     #add temp and oxy to the inflow dataframe
-    temp <- read.csv(paste0(config$data_location,"/BVR-GLM/field_data/CleanedObsTemp.csv")) %>% rename("time" = DateTime)
-    oxy <- read.csv(paste0(config$data_location,"/BVR-GLM/field_data/CleanedObsOxy.csv"))  %>% rename("time" = DateTime)
+    temp <- read.csv(paste0(config$data_location,"/BVR-GLM/field_data/CleanedObsTemp.csv")) %>% rename("time" = DateTime) %>%  filter(Depth==0.1)
+    oxy <- read.csv(paste0(config$data_location,"/BVR-GLM/field_data/CleanedObsOxy.csv"))  %>% rename("time" = DateTime) %>%  filter(Depth==0.1)
     temp_oxy <- left_join(temp,oxy, by="time") %>%
-                  mutate(time = as_date(time)) 
+                  mutate(time = as_date(time)) %>% dplyr::select(!c(Depth.x, Depth.y))
     inflow_combined <- left_join(inflow_combined,temp_oxy,by="time")
     
     inflow_combined_with_na <- left_join(inflow_combined, nutrients, by = "time") %>%
