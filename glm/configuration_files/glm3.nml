@@ -53,7 +53,7 @@
 &output
    out_dir = "./"
    out_fn = 'output'
-   nsave = 24
+   nsave = 12
 /
 &init_profiles
    num_depths = 40
