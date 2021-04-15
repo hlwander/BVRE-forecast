@@ -1,5 +1,8 @@
 lake_directory <- getwd()
 
+system("git clone https://github.com/FLARE-forecast/BVRE-data.git")
+
+
 config <- yaml::read_yaml(file.path(lake_directory, "data_processing/observation_processing.yml"))
 
 config$data_location <- file.path(lake_directory,"BVRE-data")

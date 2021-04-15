@@ -38,8 +38,10 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   met <- tibble::tibble(time = obs_met_time,
                         AirTemp = AirTemp,
                         Rain = Rain)
+  
+
   obs_met <- met %>% 
-    dplyr::filter(met$time >= (noaa_met_time[1] - lubridate::days(1)) & met$time < noaa_met_time[1])
+    dplyr::filter(time >= (noaa_met_time[1] - lubridate::days(1)) & time < noaa_met_time[1])
 
   init_flow_temp <- inflow %>%
     dplyr::filter(time == lubridate::as_date(noaa_met_time[1]) - lubridate::days(1))
