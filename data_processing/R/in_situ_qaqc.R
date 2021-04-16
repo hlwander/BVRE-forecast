@@ -54,6 +54,8 @@ in_situ_qaqc <- function(insitu_obs_fname,
     }
   }
 
+  #make hour forecast hour
+  d <- d %>%   dplyr::mutate(variable = "temperature", hour = 7) 
 
   first_day <- lubridate::as_datetime(paste0(lubridate::as_date(min(d$timestamp)), " ", config$averaging_period_starting_hour))
   first_day <- lubridate::force_tz(first_day, tzone = config$local_tzone)
@@ -88,7 +90,7 @@ in_situ_qaqc <- function(insitu_obs_fname,
      # dplyr::filter(hour == lubridate::hour(first_day))  #getting rid of this filter because I need more observations!
     }else{
       d_curr <- d_curr %>%
-        dplyr::mutate(hour = NA)
+        dplyr::mutate(hour = 7)  #manually changing hour to 7 to match forecast time
     }
 
     d_curr <- d_curr %>% dplyr::select(-datetime)

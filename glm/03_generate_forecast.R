@@ -10,9 +10,6 @@ config$run_config$forecast_location <- forecast_location
 config$data_location <- file.path(lake_directory,"BVRE-data")
 config$qaqc_data_location <- file.path(lake_directory,"data_processing/qaqc_data")
 
-#source edited functions
- source("create_obs_matrix_hlw.R")
-
 # Set up timings
 start_datetime_local <- lubridate::as_datetime(paste0(config$run_config$start_day_local," ",config$run_config$start_time_local), tz = config$local_tzone)
 if(is.na(config$run_config$forecast_start_day_local)){
@@ -118,9 +115,12 @@ if(length(forecast_files) > 0){
 
   inflow_file_names <- config$specified_inflow1 
   outflow_file_names <- config$specified_outflow1
-
+  
+  cleaned_observations_file_long <- file.path(config$qaqc_data_location, "observations_postQAQC_long.csv")
+  #obs_config$distance_threshold <- 0.5 #  Play around with this to see which produces more observations
+  
   #Create observation matrix
-  obs <- create_obs_matrix_hlw(cleaned_observations_file_long,
+  obs <-flare::create_obs_matrix(cleaned_observations_file_long,
                                   obs_config,                   
                                   start_datetime_local,           
                                   end_datetime_local,
@@ -208,19 +208,21 @@ if(length(forecast_files) > 0){
                                              forecast_location = config$run_config$forecast_location)
 
   #Create EML Metadata
-   flare::create_flare_eml(file_name = saved_file,
-                           enkf_output)
-
-   unlist(config$run_config$execute_location, recursive = TRUE)
-   
-   
-   run_config$start_day_local <- run_config$forecast_start_day_local
-   run_config$forecast_start_day_local <- as.character(lubridate::as_date(run_config$forecast_start_day_local) + lubridate::days(1))
-   run_config$restart_file <- saved_file
-   yaml::write_yaml(run_config, file = file.path(forecast_location, "configuration_files","run_configuration.yml"))
-}else{
-   run_config$forecast_start_day_local <- as.character(lubridate::as_date(run_config$forecast_start_day_local) + lubridate::days(1))
-   yaml::write_yaml(run_config, file = file.path(forecast_location, "configuration_files","run_configuration.yml"))
+#   flare::create_flare_eml(file_name = saved_file,
+#                           enkf_output)
+#
+#   unlist(config$run_config$execute_location, recursive = TRUE)
+#   
+#   
+#   run_config$start_day_local <- run_config$forecast_start_day_local
+#   run_config$forecast_start_day_local <- as.character(lubridate::as_date(run_config$forecast_start_day_local) + lubridate::days(1))
+#   run_config$restart_file <- saved_file
+#   yaml::write_yaml(run_config, file = file.path(forecast_location, "configuration_files","run_configuration.yml"))
+#}else{
+#   run_config$forecast_start_day_local <- as.character(lubridate::as_date(run_config$forecast_start_day_local) + lubridate::days(1))
+#   yaml::write_yaml(run_config, file = file.path(forecast_location, "configuration_files","run_configuration.yml"))
 }
 
-# flare::plotting_general(saved_file,qaqc_location = config$qaqc_data_location)
+source("plotting_general_hlw.R")
+plotting_general_hlw(file_name=saved_file,
+                        qaqc_location = config$qaqc_data_location)

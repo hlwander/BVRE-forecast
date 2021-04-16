@@ -1,8 +1,8 @@
-restart_file: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVRE-forecast/glm/bvre_H_2019_07_15_2019_08_10_F_16_20210415T184123.nc
-start_day_local: '2019-08-10'
+restart_file: .na
+start_day_local: '2019-07-15'
 start_time_local: '07:00:00'
 end_day_local: .na
-forecast_start_day_local: '2019-08-11'
+forecast_start_day_local: '2019-08-10'
 forecast_horizon: 16.0
 forecast_project_id: bvre_flare
 sim_name: bvre

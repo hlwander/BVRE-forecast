@@ -6,7 +6,7 @@ config$qaqc_data_location <- file.path(lake_directory,"data_processing/qaqc_data
 
 #install.packages("remotes")
 #remotes::install_github("rqthomas/noaaGEFSpoint")
-pacman::p_load(tidyverse, lubridate, noaaGEFSpoint)
+pacman::p_load(tidyverse, lubridate, noaaGEFSpoint, magrittr)
 
 #source data processing files
 source(file.path(lake_directory, "data_processing/R/extract_CTD.R"))
