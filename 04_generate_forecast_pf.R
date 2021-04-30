@@ -229,6 +229,7 @@ if(length(forecast_files) > 0){
 
   nml <- glmtools::read_nml(file.path(working_directory,"1", "glm3.nml"))
   deps <- glmtools::get_nml_value(nml, "the_depths")
+  # with inflows
   nml <- glmtools::set_nml(nml, arg_list = list(
     "num_depths" = length(deps),
     "meteo_fl" = met_file_names[1],
@@ -237,6 +238,17 @@ if(length(forecast_files) > 0){
     "start" = format(full_time_forecast[1], "%Y-%m-%d %H:%M:%S"),
     "stop" = format(full_time_forecast[length(full_time_forecast)], "%Y-%m-%d %H:%M:%S")
   ))
+  # No inflows
+  # nml <- glmtools::set_nml(nml, arg_list = list(
+  #   "num_depths" = length(deps),
+  #   "meteo_fl" = met_file_names[1],
+  #   "inflow_fl" = "",
+  #   "outflow_fl" = "",
+  #   "num_inflows" = 0,
+  #   "num_outlet" = 0,
+  #   "start" = format(full_time_forecast[1], "%Y-%m-%d %H:%M:%S"),
+  #   "stop" = format(full_time_forecast[length(full_time_forecast)], "%Y-%m-%d %H:%M:%S")
+  # ))
   glmtools::write_nml(nml, file.path(working_directory,"1", "glm3.nml"))
 
   unlink(file.path(working_directory,"1", "output"), recursive = TRUE)
