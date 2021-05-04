@@ -1,4 +1,5 @@
 
+#set directory
 lake_directory <- getwd()
 forecast_location <- file.path(lake_directory, "glm")
 
@@ -10,8 +11,6 @@ config$run_config$forecast_location <- forecast_location
 config$data_location <- file.path(lake_directory,"BVRE-data")
 config$qaqc_data_location <- file.path(lake_directory,"data_processing/qaqc_data")
 
-#source edited functions
-# source("create_obs_matrix_hlw.R")
 
 # Set up timings
 start_datetime_local <- lubridate::as_datetime(paste0(config$run_config$start_day_local," ",config$run_config$start_time_local), tz = config$local_tzone)
@@ -34,20 +33,22 @@ noaa_forecast_path <- file.path("C:\\Users\\mooret\\Desktop\\FLARE\\flare_lake_e
 
 pacman::p_load(tidyverse, lubridate, noaaGEFSpoint, magrittr)
 
+pacman::p_load(dplyr)
+
 forecast_files <- list.files(noaa_forecast_path, full.names = TRUE)
 
 if(length(forecast_files) > 0){
 
   message("Forecasting inflow and outflows")
   source(paste0(lake_directory, "/inflow_outflows/forecast_inflow_outflows.R"))
-  # Forecast Inflows
-  # forecast_inflows_outflows(inflow_obs =  file.path(config$qaqc_data_location,"inflow_postQAQC.csv"), #might want to change this because only goes to 2019
-  #                           forecast_files = forecast_files,
-  #                           obs_met_file = file.path(config$qaqc_data_location,"observed-met_fcre.nc"),
-  #                           output_dir = config$data_location,
-  #                           inflow_model = config$forecast_inflow_model,
-  #                           inflow_process_uncertainty = FALSE,
-  #                           forecast_location = config$run_config$forecast_location)
+  #Forecast Inflows
+  forecast_inflows_outflows(inflow_obs =  file.path(config$qaqc_data_location,"inflow_postQAQC.csv"),
+                            forecast_files = forecast_files,
+                            obs_met_file = file.path(config$qaqc_data_location,"observed-met_fcre.nc"),
+                            output_dir = config$data_location,
+                            inflow_model = config$forecast_inflow_model,
+                            inflow_process_uncertainty = FALSE,
+                            forecast_location = config$run_config$forecast_location)
 
 
   ##### Read configuration files
@@ -117,24 +118,15 @@ if(length(forecast_files) > 0){
                                                                  use_future_inflow = TRUE,
                                                                  state_names = NULL)
 
-  inflow_file_names <- config$specified_inflow1 # inflow_outflow_files$inflow_file_names # config$specified_inflow1
-  outflow_file_names <- config$specified_outflow1# inflow_outflow_files$outflow_file_names # config$specified_outflow1
 
+  inflow_file_names <- config$specified_inflow1 
+  outflow_file_names <- config$specified_outflow1
+  
+  cleaned_observations_file_long <- file.path(config$qaqc_data_location, "observations_postQAQC_long.csv")
+  #obs_config$distance_threshold <- 0.5 #  Play around with this to see which produces more observations
+  
   #Create observation matrix
-  # source("create_obs_matrix_hlw.R")
-  
-  # Set obs hour to 7
-  # d <- readr::read_csv(cleaned_observations_file_long)
-  # d1 <- d %>%
-  #   dplyr::filter(variable == obs_config$target_variable[1],
-  #                 date == lubridate::as_date(start_datetime_local))
-  # Write new qaqc file with just the one measurement and adjusted hour
-  # d1$hour <- 7
-  # readr::write_csv(d1, file = file.path(config$qaqc_data_location, "observations_postQAQC_long_v2.csv"))
-  # cleaned_observations_file_long <- file.path(config$qaqc_data_location, "observations_postQAQC_long_v2.csv")
-  obs_config$distance_threshold <- 0.003 #  Play around with this to see which produces more observations
-  
-  obs <- flare::create_obs_matrix(cleaned_observations_file_long, #note to self - I manually changed the observations_postQAQC_long and changed all 7/11 observations to 7/27
+  obs <-flare::create_obs_matrix(cleaned_observations_file_long,
                                   obs_config,                   
                                   start_datetime_local,           
                                   end_datetime_local,
@@ -154,7 +146,7 @@ if(length(forecast_files) > 0){
 
   #Set inital conditions
   if(is.na(run_config$restart_file)){
-    init <- flare::generate_initial_conditions(states_config, #start here then work down
+    init <- flare::generate_initial_conditions(states_config,
                                                obs_config,
                                                pars_config,
                                                obs,
@@ -162,7 +154,7 @@ if(length(forecast_files) > 0){
   }else{
 
       nc <- ncdf4::nc_open(paste0(run_config$restart_file))
-      forecast <- ncdf4::ncvar_get(nc, "forecast") #issue here because NA is first value
+      forecast <- ncdf4::ncvar_get(nc, "forecast") 
       if(historical_met_error){
       restart_index <- max(which(forecast == 0)) + 1
       }else{
@@ -261,3 +253,4 @@ if(length(forecast_files) > 0){
 
 # flare::plotting_general(saved_file,
                         # qaqc_location = config$qaqc_data_location)
+

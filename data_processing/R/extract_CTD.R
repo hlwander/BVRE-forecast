@@ -44,8 +44,16 @@ extract_CTD <- function(fname,
            oxygen = config$ctd_2_exo_sensor_do[1] + config$ctd_2_exo_sensor_do[2] * oxygen) %>%
     pivot_longer(cols = c("temperature", "oxygen", "chla"), names_to = "variable", values_to = "value") %>%
     mutate(method = "ctd") %>%
-    dplyr::select(timestamp , depth, value, variable, method) %>%
-    mutate(timestamp = lubridate::as_datetime(timestamp, tz = local_tzone))
+    mutate(timestamp = lubridate::as_datetime(timestamp, tz = local_tzone)) %>%
+    dplyr::select(timestamp , depth, value, variable, method) 
+  
+  #select every 0.5m
+  d_ctd <- d_ctd %>%
+    dplyr::mutate(rdepth = plyr::round_any(depth, 0.5)) %>% 
+    dplyr::group_by(timestamp, rdepth, variable) %>%
+    summarise(value = mean(value)) %>% 
+    mutate(method = "ctd") %>% 
+    dplyr::rename(depth = rdepth) 
   
   #add hour to 2019 data
   #  d_ctd <- d_ctd %>% mutate(timestamp = as.POSIXct(strptime(timestamp,"%Y-%m-%d"),formt="%Y-%m-%d %H:%M:%S")) %>%

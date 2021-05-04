@@ -96,8 +96,8 @@ target_variables:
     - chla
 
 averaging_period:
-    - "1 hour"
-    - "1 hour"
+    - "1 day"
+    - "1 day"
     - "1 day"
     - "1 day"
     - "1 day"
