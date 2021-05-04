@@ -1,5 +1,6 @@
-qaqc_data_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVRE-forecast/data_processing/qaqc_data
-data_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVRE-forecast/BVRE-data
+qaqc_data_location: C:/Users/mooret/Desktop/Git/BVRE-forecast/data_processing/qaqc_data
+data_location: C:/Users/mooret/Desktop/Git/BVRE-forecast/BVRE-data
+
 
 
 ##########################
@@ -58,6 +59,7 @@ initial_condition_uncertainty: TRUE
 parameter_uncertainty: TRUE
 met_downscale_uncertainty: TRUE
 inflow_process_uncertainty: TRUE
+
 
 specified_inflow1: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVRE-forecast/BVRE-data/BVR-GLM/inputs/BVR_inflow_2014_2019_20200917_allfractions_2poolsDOC_withch4_nldasInflow.csv
 specified_outflow1: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVRE-forecast/BVRE-data/BVR-GLM/inputs/BVR_spillway_outflow_2014_2019_20200917_nldasInflow.csv
@@ -119,6 +121,7 @@ default_blue_ice_thickness_init: 0.0
 ##############################
 ##  EnKF setup
 ##############################
+
 ensemble_size:  105 #221 #441
 localization_distance: .na #distance in meters were covariances in the model error are used
 vert_decorr_length: 5.0

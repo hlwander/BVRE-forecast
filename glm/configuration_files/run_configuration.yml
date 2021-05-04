@@ -7,5 +7,5 @@ forecast_horizon: 16.0
 forecast_project_id: bvre_flare
 sim_name: bvre
 forecast_sss_on: no
-forecast_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVRE-forecast/BVRE-data/NOAAGEFS_1hr/bvre
-execute_location: /Users/heatherwander/Documents/VirginiaTech/research/BVR_GLM/BVRE-forecast/working_directory
+forecast_location: C:/Users/mooret/Desktop/Git/BVRE-forecast/fc_out
+execute_location: C:/Users/mooret/Desktop/Git/BVRE-forecast/bvre
