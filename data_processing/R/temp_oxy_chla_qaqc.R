@@ -39,7 +39,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
   catdata <- readr::read_csv(realtime_file, skip = 4, col_names = CATDATA_COL_NAMES, 
                       col_types = readr::cols(.default = readr::col_double(), DateTime = readr::col_datetime()))
 
-  log <- readr::read_csv(maintenance_file, col_types = readr::cols(
+  log <- readr::read_tsv(maintenance_file, col_types = readr::cols(
     .default = readr::col_character(),
     TIMESTAMP_start = readr::col_datetime("%Y-%m-%d %H:%M:%S%*"),
     TIMESTAMP_end = readr::col_datetime("%Y-%m-%d %H:%M:%S%*"),

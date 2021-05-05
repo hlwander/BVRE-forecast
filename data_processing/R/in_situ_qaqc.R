@@ -55,7 +55,7 @@ in_situ_qaqc <- function(insitu_obs_fname,
   }
 
   #make hour forecast hour
-  d <- d %>%   dplyr::mutate(variable = "temperature", hour = 7) 
+  d <- d %>%   dplyr::mutate(hour = 7) 
 
   first_day <- lubridate::as_datetime(paste0(lubridate::as_date(min(d$timestamp)), " ", config$averaging_period_starting_hour))
   first_day <- lubridate::force_tz(first_day, tzone = config$local_tzone)

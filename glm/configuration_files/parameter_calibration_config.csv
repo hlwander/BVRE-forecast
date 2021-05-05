@@ -2,5 +2,5 @@
 sed_temp_mean,zone1temp,glm3.nml,12,5,15,0.000001,30,1.02,1,deg_C
 sed_temp_mean,zone2temp,glm3.nml,15,10,20,0.000001,30,1.02,1,deg_C
 sw_factor,sw_factor,glm3.nml,1,0.5,1.5,0.00001,10,1.02,0.1,unitless
-Kw,Kw,glm3.nml,0.98,0.5,1.5,0.00001,10,1.02,0.1,m-1
+Kw,Kw,glm3.nml,0.15,0.5,1.5,0.00001,10,1.02,0.1,m-1
 wind_factor,wind_factor,glm3.nml,1,0.5,1.5,0.00001,10,1.02,0.1,unitless
