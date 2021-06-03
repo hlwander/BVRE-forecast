@@ -11,9 +11,15 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
 
   noaa_met_nc <- ncdf4::nc_open(forecast_files[1])
   noaa_met_time <- ncdf4::ncvar_get(noaa_met_nc, "time")
-  origin <- stringr::str_sub(ncdf4::ncatt_get(noaa_met_nc, "time")$units, 13, 28)
-  origin <- lubridate::ymd_hm(origin)
+  origin <- stringr::str_sub(ncdf4::ncatt_get(noaa_met_nc, "time")$units, 13, 28) 
+  origin <- lubridate::ymd_hm(origin)  
   noaa_met_time <- origin + lubridate::hours(noaa_met_time)
+  #AirTemp_n <- ncdf4::ncvar_get(noaa_met_nc, "air_temperature")
+  #Rain_n <- ncdf4::ncvar_get(noaa_met_nc, "precipitation_flux")
+  #Shortwave_n = ncdf4::ncvar_get(noaa_met_nc, "surface_downwelling_shortwave_flux_in_air")
+  #Longwave_n = ncdf4::ncvar_get(noaa_met_nc, "surface_downwelling_longwave_flux_in_air")
+  #Wind_n = ncdf4::ncvar_get(noaa_met_nc, "wind_speed")
+  
   
   obs_met_nc <- ncdf4::nc_open(obs_met_file)
   obs_met_time <- ncdf4::ncvar_get(obs_met_nc, "time")
@@ -22,7 +28,10 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   obs_met_time <- origin + lubridate::hours(obs_met_time)
   AirTemp <- ncdf4::ncvar_get(obs_met_nc, "air_temperature")
   Rain <- ncdf4::ncvar_get(obs_met_nc, "precipitation_flux")
-
+  #Shortwave = ncdf4::ncvar_get(obs_met_nc, "surface_downwelling_shortwave_flux_in_air")
+  #Longwave = ncdf4::ncvar_get(obs_met_nc, "surface_downwelling_longwave_flux_in_air")
+  #Wind = ncdf4::ncvar_get(obs_met_nc, "wind_speed")
+  
   run_date <- lubridate::as_date(noaa_met_time[1])
   run_cycle <- lubridate::hour(noaa_met_time[1])
   if(run_cycle < 10){run_cycle <- paste0("0",run_cycle)}
@@ -37,15 +46,35 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
 
   met <- tibble::tibble(time = obs_met_time,
                         AirTemp = AirTemp,
-                        Rain = Rain)
+                        Rain = Rain)#,
+                        #Shortwave = Shortwave,
+                        #Longwave = Longwave,
+                        #Wind = Wind)
+  
+ #noaa <- tibble::tibble(time = noaa_met_time,
+ #                       AirTemp = AirTemp_n,
+ #                       Rain = Rain_n,
+ #                       Shortwave = Shortwave_n,
+ #                       Longwave = Longwave_n,
+ #                       Wind = Wind_n)
   
 
   obs_met <- met %>% 
-    dplyr::filter(time >= (noaa_met_time[1] - lubridate::days(1)) & time < noaa_met_time[1])
-
+    dplyr::filter(time >= (noaa_met_time[1] - lubridate::days(1)) & time < noaa_met_time[1]) 
+    #dplyr::filter(time %in% noaa_met_time)
+  
+  #plot noaa vs obs met 
+ #plot(noaa$Longwave~obs_met$Longwave, type="p", pch=16, col="darkred", xlim=c(200,410), ylim=c(200,410), ylab="noaa_longwave", xlab="met_longwave")
+ #abline(0,1, lty=2)
+ #plot(noaa$Shortwave~obs_met$Shortwave, type="p", pch=16, col="darkblue", xlim=c(0,1000), ylim=c(0,1000), ylab="noaa_shortwave", xlab="met_shortwave")
+ #abline(0,1, lty=2)
+ #plot(noaa$Wind~obs_met$Wind, type="p", pch=16, col="darkgreen", ylab="noaa_wind", xlab="met_wind")
+ #abline(0,1, lty=2)
+ #plot(noaa$AirTemp~obs_met$AirTemp, type="p", pch=16, col="Orange",  xlim=c(266,300), ylim=c(266,300),ylab="noaa_airtemp", xlab="met_airtemp")
+ #abline(0,1, lty=2)
+  
   init_flow_temp <- inflow %>%
     dplyr::filter(time == lubridate::as_date(noaa_met_time[1]) - lubridate::days(1))
-
   
 #------------------------------------------------------------------------------#
 #      Thornthwaite-Mather Water Balance Model for Forecasting Inflow          #
@@ -69,7 +98,7 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   myflowgage=get_usgs_gage(myflowgage_id,begin_date = "2019-01-01",end_date = "2021-04-05")
   
   #only select dates during the forecast period
-  myflowgage$flowdata <- myflowgage$flowdata[myflowgage$flowdata$mdate >= run_date-1 & myflowgage$flowdata$mdate <= run_date + 15,] 
+  myflowgage$flowdata <- myflowgage$flowdata[myflowgage$flowdata$mdate >= run_date & myflowgage$flowdata$mdate <= run_date + 17,] 
   
   #change coordinates and area for entire BVR watershed
   myflowgage$area<- 2.27 #km
@@ -165,8 +194,7 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
     curr_met_daily <- noaa_met %>%
       dplyr::mutate(AirTemp = AirTemp - 273.15,
                     Rain = Rain * (60 * 60 * 24)) %>% #was /1000 to get to m/d, but SnowMelt needs mm/d units
-      dplyr::mutate(mdate = lubridate::with_tz(noaa_met$time, tzone = local_tzone),
-                    mdate = mdate - lubridate::hours(lubridate::hour(time[1]))) %>%
+      dplyr::mutate(mdate = lubridate::with_tz(noaa_met$time, tzone = local_tzone)) %>%
       dplyr::mutate(mdate = lubridate::as_date(mdate)) %>%
       dplyr::group_by(mdate) %>%
       dplyr::summarize(Rain = mean(Rain),

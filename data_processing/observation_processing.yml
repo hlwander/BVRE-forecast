@@ -23,7 +23,7 @@ met_raw_obs_fname:
     - Met_final_2015_2020.csv
 #specified_metfile: .na #NA #paste0(manual_data_location, "/met_full_postQAQC.csv")
 
-downscaling_coeff: manual-data/debiased.coefficients.2018_07_12_2019_07_11.RData #don't know if this is the same for BVR 
+downscaling_coeff: manual-data/debiased.coefficients.2018_07_12_2019_07_11.RData #try running with past few months of NOAA debiased forecasts??
 
 nldas: manual-data/FCR_GLM_NLDAS_010113_123119_GMTadjusted.csv 
 

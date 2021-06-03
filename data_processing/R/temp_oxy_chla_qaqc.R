@@ -661,6 +661,13 @@ temp_oxy_chla_qaqc <- function(realtime_file,
   return(d)
 }
 
+
+#figs
+#plot(d$timestamp[d$variable=="oxygen" & d$depth==1.5], d$value[d$variable=="oxygen"& d$depth==1.5],col="magenta", xlab="",ylab="Dissolved oxygen (mg/L)",type="l", ylim=c(0,440))
+#points(d$timestamp[d$variable=="oxygen" & d$depth=="6.0"], d$value[d$variable=="oxygen"& d$depth=="6.0"],col="black",type="l")
+#points(d$timestamp[d$variable=="oxygen" & d$depth=="13.0"], d$value[d$variable=="oxygen"& d$depth=="13.0"],col="mediumseagreen",type="l")
+#legend("bottomright", legend=c("1m", "6m", "13m"), text.col=c("magenta","black","mediumseagreen"), bty='n')
+
 # example usage
 # qaqc("https://raw.githubusercontent.com/CareyLabVT/SCCData/mia-data/Catwalk.csv",
 #      "https://raw.githubusercontent.com/CareyLabVT/SCCData/mia-data/CAT_MaintenanceLog.txt",

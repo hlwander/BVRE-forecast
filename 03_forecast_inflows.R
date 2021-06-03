@@ -2,6 +2,8 @@
 lake_directory <- getwd()
 forecast_location <- file.path(lake_directory, "glm")
 
+pacman::p_load(tidyverse, dplyr, lubridate, noaaGEFSpoint)
+
 config <- yaml::read_yaml(file.path(forecast_location, "configuration_files","configure_flare.yml"))
 run_config <- yaml::read_yaml(file.path(forecast_location, "configuration_files","run_configuration.yml"))
 

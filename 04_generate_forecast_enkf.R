@@ -7,6 +7,7 @@ forecast_location <- file.path(lake_directory, "glm")
 config <- yaml::read_yaml(file.path(forecast_location, "configuration_files","configure_flare.yml"))
 run_config <- yaml::read_yaml(file.path(forecast_location, "configuration_files","run_configuration.yml"))
 
+
 config$run_config <- run_config
 config$run_config$forecast_location <- forecast_location
 config$data_location <- file.path(lake_directory,"BVRE-data")
@@ -19,7 +20,7 @@ config$ncore <- 2 # Set number of cores to run FLARE on
 da_method <- "enkf"
 par_fit_method <- "inflate" # inflate perturb
 
-sel_pars <- c("Kw", "wind_factor")
+sel_pars <- c("sed_temp_mean", "sw_factor")
 
 # Set up timings
 start_datetime_local <- lubridate::as_datetime(paste0(config$run_config$start_day_local," ",config$run_config$start_time_local), tz = config$local_tzone)
@@ -37,23 +38,23 @@ end_datetime_UTC <-  lubridate::with_tz(end_datetime_local, tzone = "UTC")
 forecast_start_datetime_UTC <- lubridate::with_tz(forecast_start_datetime_local, tzone = "UTC")
 forecast_hour <- lubridate::hour(forecast_start_datetime_UTC)
 if(forecast_hour < 10){forecast_hour <- paste0("0",forecast_hour)}
-noaa_forecast_path <- file.path(config$data_location, config$forecast_met_model,"fcre",lubridate::as_date(forecast_start_datetime_UTC),forecast_hour)
+noaa_forecast_path <- file.path(config$data_location, config$forecast_met_model,"fcre",lubridate::as_date(start_datetime_UTC),forecast_hour) #forecast_start_datetime_UTC
 
 pacman::p_load(dplyr, lubridate, noaaGEFSpoint, magrittr)
 
-forecast_files <- list.files(noaa_forecast_path, full.names = TRUE)
+forecast_files <- list.files(noaa_forecast_path, full.names = TRUE)[1:31]
 
 if(length(forecast_files) > 0){
   
   message("Forecasting inflow and outflows")
   source(paste0(lake_directory, "/inflow_outflows/forecast_inflow_outflows.R"))
   #Forecast Inflows
-  forecast_inflows_outflows(inflow_obs =  file.path(config$qaqc_data_location,"inflow_postQAQC.csv"),
+  forecast_inflows_outflows(inflow_obs = file.path(config$data_location,"BVR-GLM/inputs/BVR_inflow_calcs_2020-2021.csv"),  #file.path(config$qaqc_data_location,"inflow_postQAQC.csv"),
                            forecast_files = forecast_files,
                            obs_met_file = file.path(config$qaqc_data_location,"observed-met_fcre.nc"),
                            output_dir = config$data_location,
                            inflow_model = config$forecast_inflow_model,
-                           inflow_process_uncertainty = FALSE,
+                           inflow_process_uncertainty = TRUE,
                            forecast_location = config$run_config$forecast_location)
   
   if(!dir.exists(config$run_config$execute_location)){
@@ -72,8 +73,6 @@ if(length(forecast_files) > 0){
   states_config <- readr::read_csv(file.path(config$run_config$forecast_location, "configuration_files", config$states_config_file), col_types = readr::cols())
   
   # states_process <-  readr::read_csv(file.path(config$run_config$forecast_location, "configuration_files", "states_process_error.csv"), col_types = readr::cols())
-  
-  
   
   # Set up timings
   start_datetime_local <- lubridate::as_datetime(paste0(config$run_config$start_day_local," ",config$run_config$start_time_local), tz = config$local_tzone)
@@ -100,26 +99,51 @@ if(length(forecast_files) > 0){
   forecast_start_datetime_UTC <- lubridate::with_tz(forecast_start_datetime_local, tzone = "UTC")
   forecast_hour <- lubridate::hour(forecast_start_datetime_UTC)
   if(forecast_hour < 10){forecast_hour <- paste0("0",forecast_hour)}
-  forecast_path <- file.path(config$data_location, "NOAAGEFS_1hr",config$lake_name_code,lubridate::as_date(forecast_start_datetime_UTC),forecast_hour)
+  forecast_path <- noaa_forecast_path#file.path(config$data_location, "NOAAGEFS_1hr","fcre",lubridate::as_date(forecast_start_datetime_UTC),forecast_hour) 
   
   met_out <- flare::generate_glm_met_files(obs_met_file = observed_met_file,
                                            out_dir = config$run_config$execute_location,
-                                           forecast_dir = noaa_forecast_path,
+                                           forecast_dir = noaa_forecast_path, 
                                            local_tzone = config$local_tzone,
                                            start_datetime_local = start_datetime_local,
                                            end_datetime_local = end_datetime_local,
                                            forecast_start_datetime = forecast_start_datetime_local,
                                            use_forecasted_met = TRUE)
-  
+  #nc <- ncdf4::nc_open(forecast_files[1])
+  #visualize forecasted and observed met data
   met_file_names <- met_out$filenames
   historical_met_error <- met_out$historical_met_error
+  forecasts <- config$run_config$execute_location
+  tbl <- list.files(path = forecasts, pattern = "*.csv") %>% 
+    map_df(~read_csv(file.path(forecasts, .)))%>%
+    mutate(type = ifelse(time < forecast_start_datetime_UTC,"observed", "forecast"))
+  hourly_mean_line <- tbl %>%
+    reshape2::melt(., id = c("time","type"))%>%
+    filter(time >= (forecast_start_datetime_UTC)-lubridate::days(10))%>%
+    ggplot(., aes(time,value, color = type))+
+    geom_point(cex = 0.2, alpha = 0.5)+
+    labs(title = forecast_start_datetime_UTC)+
+    facet_wrap(~variable, scales = "free_y")+theme_classic()
+  hourly_mean_line
+  hourly_mean_pts <- tbl %>%
+    reshape2::melt(., id = c("time","type"))%>%
+    filter(time > forecast_start_datetime_UTC-lubridate::days(1)&
+             time < forecast_start_datetime_UTC+lubridate::days(1))%>%
+    ggplot(., aes(time,value, color = type))+
+    geom_point(cex = 1, alpha = 0.5)+
+    labs(title = forecast_start_datetime_UTC)+
+    facet_wrap(~variable, scales = "free_y")+
+    theme_classic()
+  hourly_mean_pts
+  
+  
   
   #Inflow Drivers (already done)
   
-  inflow_forecast_path <- file.path(config$data_location, config$forecast_inflow_model,config$lake_name_code,lubridate::as_date(forecast_start_datetime_UTC),forecast_hour)
+  inflow_forecast_path <- file.path(config$data_location, config$forecast_inflow_model,config$lake_name_code,lubridate::as_date(start_datetime_local),forecast_hour) #forecast_start_datetime_UTC
   
   inflow_outflow_files <- flare::create_glm_inflow_outflow_files(inflow_file_dir = inflow_forecast_path,
-                                                                 inflow_obs = cleaned_inflow_file,#paste0(config$data_location,"/FLOWS-NOAAGEFS-TMWB/bvre/2021-03-01/12/INFLOW-FLOWS-NOAAGEFS-TMWB_bvre_2021-03-01_2021-03-16_ens00.csv"),
+                                                                 inflow_obs =  file.path(config$data_location,"BVR-GLM/inputs/BVR_inflow_calcs_2020-2021.csv"), #cleaned_inflow_file,
                                                                  working_directory =config$run_config$execute_location,
                                                                  start_datetime_local = start_datetime_local,
                                                                  end_datetime_local = end_datetime_local,
@@ -127,7 +151,7 @@ if(length(forecast_files) > 0){
                                                                  use_future_inflow = TRUE,
                                                                  state_names = NULL)
   
-  inflow_file_names <- config$specified_inflow1 
+  inflow_file_names  <- config$specified_inflow1 
   outflow_file_names <- config$specified_outflow1
   
   cleaned_observations_file_long <- file.path(config$qaqc_data_location, "observations_postQAQC_long.csv")
@@ -145,6 +169,8 @@ if(length(forecast_files) > 0){
   full_time_forecast <- seq(start_datetime_local, end_datetime_local, by = "1 day")
   obs[ , which(full_time_forecast > forecast_start_datetime_local), ] <- NA
   
+  #setting all obs to NA to see what the model actually looks like without DA
+  #obs[,,] <- NA
   
   states_config <- flare::generate_states_to_obs_mapping(states_config, obs_config)
   
@@ -161,7 +187,7 @@ if(length(forecast_files) > 0){
   }else{
     
     nc <- ncdf4::nc_open(paste0(run_config$restart_file))
-    forecast <- ncdf4::ncvar_get(nc, "forecast") #issue here because NA is first value
+    forecast <- ncdf4::ncvar_get(nc, "forecast") 
     if(historical_met_error){
       restart_index <- max(which(forecast == 0)) + 1
     }else{

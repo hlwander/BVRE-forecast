@@ -53,7 +53,7 @@ if(is.null(config$combined_obs_file)){
                secchi_fname = file.path(config$data_location, config$secchi_fname),
                cleaned_observations_file_long = cleaned_observations_file_long,
                lake_name_code = config$lake_name_code,
-               config = config)
+               )
 }else{
   file.copy(file.path(config$data_location,config$combined_obs_file), cleaned_observations_file_long, overwrite = TRUE)
 }
