@@ -20,11 +20,11 @@ source(file.path(lake_directory, "data_processing/R/inflow_qaqc.R"))
 
 if(is.null(config$met_file)){
   met_qaqc(realtime_file = file.path(config$data_location, config$met_raw_obs_fname[1]),
-           qaqc_file = file.path(config$data_location, config$met_raw_obs_fname[2]), #realtime QAQC not available so NA for 2021
+           qaqc_file = NA,#file.path(config$data_location, config$met_raw_obs_fname[2]), #realtime QAQC not available so NA for 2021
            cleaned_met_file_dir = config$qaqc_data_location,
            input_file_tz = "EST",
            local_tzone = config$local_tzone,
-           nldas = file.path(config$data_location, config$nldas))
+           nldas = file.path(config$data_location, config$nldas)) #nldas only goes up to end of 2019
 }else{
   file.copy(file.path(config$data_location,config$met_file), cleaned_met_file, overwrite = TRUE)
 }
@@ -53,7 +53,7 @@ if(is.null(config$combined_obs_file)){
                secchi_fname = file.path(config$data_location, config$secchi_fname),
                cleaned_observations_file_long = cleaned_observations_file_long,
                lake_name_code = config$lake_name_code,
-               )
+               config = config)
 }else{
   file.copy(file.path(config$data_location,config$combined_obs_file), cleaned_observations_file_long, overwrite = TRUE)
 }

@@ -87,51 +87,19 @@ pull_from_git: TRUE
 target_variables:
     - temperature
     - oxygen
-    - NH4
-    - NO3NO2
-    - TN
-    - SRP
-    - TP
-    - fdom
-    - chla
+
 
 averaging_period:
     - "1 day"
     - "1 day"
-    - "1 day"
-    - "1 day"
-    - "1 day"
-    - "1 day"
-    - "1 day"
-    - "1 day"
-    - "1 day"
     
-averaging_period_starting_hour: "07:00:00"
+averaging_period_starting_hour: "12:00:00"
 
 measurement_methods: 
     temperature:
         - thermistor
-        - do_sensor
-        - exo_sensor
-        - ctd
     oxygen:
         - do_sensor
         - exo_sensor
-        - ctd
-    NH4:
-        - grab_sample
-    NO3NO2:
-        - grab_sample
-    TN:
-        - grab_sample
-    SRP:
-        - grab_sample
-    TP:
-        - grab_sample
-    fdom:
-        - exo_sensor
-    chla:
-        - exo_sensor
-        - ctd
     
 

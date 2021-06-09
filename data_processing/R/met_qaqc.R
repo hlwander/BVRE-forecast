@@ -203,7 +203,7 @@ met_qaqc <- function(realtime_file,
   d <- d %>%
     tidyr::drop_na()
 
-  if(!is.null(nldas)){
+   if(!is.null(nldas)){
 
     print("Gap filling with NLDAS")
     d_nldas <- readr::read_csv(nldas, col_type = readr::cols())

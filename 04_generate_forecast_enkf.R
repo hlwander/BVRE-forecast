@@ -38,7 +38,7 @@ end_datetime_UTC <-  lubridate::with_tz(end_datetime_local, tzone = "UTC")
 forecast_start_datetime_UTC <- lubridate::with_tz(forecast_start_datetime_local, tzone = "UTC")
 forecast_hour <- lubridate::hour(forecast_start_datetime_UTC)
 if(forecast_hour < 10){forecast_hour <- paste0("0",forecast_hour)}
-noaa_forecast_path <- file.path(config$data_location, config$forecast_met_model,"fcre",lubridate::as_date(start_datetime_UTC),forecast_hour) #forecast_start_datetime_UTC
+noaa_forecast_path <- file.path(config$data_location, config$forecast_met_model,"fcre",lubridate::as_date(forecast_start_datetime_UTC),forecast_hour) 
 
 pacman::p_load(dplyr, lubridate, noaaGEFSpoint, magrittr)
 
@@ -108,7 +108,7 @@ if(length(forecast_files) > 0){
                                            start_datetime_local = start_datetime_local,
                                            end_datetime_local = end_datetime_local,
                                            forecast_start_datetime = forecast_start_datetime_local,
-                                           use_forecasted_met = TRUE)
+                                           use_forecasted_met = FALSE)
   #nc <- ncdf4::nc_open(forecast_files[1])
   #visualize forecasted and observed met data
   met_file_names <- met_out$filenames
@@ -139,8 +139,7 @@ if(length(forecast_files) > 0){
   
   
   #Inflow Drivers (already done)
-  
-  inflow_forecast_path <- file.path(config$data_location, config$forecast_inflow_model,config$lake_name_code,lubridate::as_date(start_datetime_local),forecast_hour) #forecast_start_datetime_UTC
+  inflow_forecast_path <- file.path(config$data_location, config$forecast_inflow_model,config$lake_name_code,lubridate::as_date(forecast_start_datetime_UTC),forecast_hour) 
   
   inflow_outflow_files <- flare::create_glm_inflow_outflow_files(inflow_file_dir = inflow_forecast_path,
                                                                  inflow_obs =  file.path(config$data_location,"BVR-GLM/inputs/BVR_inflow_calcs_2020-2021.csv"), #cleaned_inflow_file,
@@ -157,9 +156,9 @@ if(length(forecast_files) > 0){
   cleaned_observations_file_long <- file.path(config$qaqc_data_location, "observations_postQAQC_long.csv")
   # obs_config$distance_threshold <- 0.5 #  Play around with this to see which produces more observations
   
-  obs <- flare::create_obs_matrix(cleaned_observations_file_long, 
-                                  obs_config,                   
-                                  start_datetime_local,           
+  obs <- flare::create_obs_matrix(cleaned_observations_file_long,
+                                  obs_config,
+                                  start_datetime_local,  
                                   end_datetime_local,
                                   local_tzone = config$local_tzone,
                                   modeled_depths = config$modeled_depths)
@@ -291,8 +290,7 @@ if(length(forecast_files) > 0){
                    par_fit_method = par_fit_method)
   write.table(dt, file.path(lake_directory, "model_timing_v3.dat"), append = TRUE, row.names = FALSE,
               col.names = ifelse(file.exists(file.path(lake_directory, "model_timing_v3.dat")), F, T), sep = ",")
-  
-}else{
+  }else{
   # run_config$forecast_start_day_local <- as.character(lubridate::as_date(run_config$forecast_start_day_local) + lubridate::days(1))
   # yaml::write_yaml(run_config, file = file.path(forecast_location, "configuration_files","run_configuration.yml"))
 }

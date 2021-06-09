@@ -8,7 +8,8 @@ extract_secchi <- function(fname,
     filter(Reservoir == "BVR" & Site == 50) %>%
     dplyr::select(DateTime, Secchi_m) %>%
     mutate(DateTime = mdy_hm(DateTime),
-           DateTime = force_tz(DateTime, local_tzone)) %>%
+           DateTime = force_tz(DateTime, input_file_tz),
+           DateTime = with_tz(DateTime, "UTC")) %>%
     group_by(DateTime) %>%
     summarise(secchi = mean(Secchi_m, na.rm = TRUE), .groups = 'drop') %>%
     rename("timestamp" = DateTime) %>%

@@ -265,7 +265,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
     mutate(Flag_Temp_12=ifelse(DateTime<"2020-10-05 12:05:00 tz=Etc/GMT+5", 7, Flag_Temp_12))%>%
     mutate(Flag_Temp_13=ifelse(DateTime<"2020-10-05 12:05:00 tz=Etc/GMT+5", 7, Flag_Temp_13))
   
-  #add flaggs and set to NA 
+  #add flags and set to NA 
   catdata=catdata%>%
     mutate(Flag_Phyco= ifelse(DateTime=="2020-08-01 12:50:00 tz=Etc/GMT+5", 5, Flag_Phyco))%>%
     mutate(Flag_Phyco= ifelse(DateTime>="2020-10-29 10:10:00 tz=Etc/GMT+5" &DateTime<="2020-10-29 12:00:00 tz=Etc/GMT+5", 2, Flag_Phyco))%>%
@@ -305,7 +305,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
     }
 
     TIMESTAMP_in <- as_datetime(d1$DateTime,tz = input_file_tz)
-    d1$TIMESTAMP <- with_tz(TIMESTAMP_in,tz = local_tzone)
+    d1$TIMESTAMP <- with_tz(TIMESTAMP_in,tz = "UTC")
 
     d3 <-  data.frame(TIMESTAMP = d1$TIMESTAMP, 
                       wtr_1 = d1$ThermistorTemp_C_1, wtr_2 = d1$ThermistorTemp_C_2,
@@ -323,7 +323,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
     
     if(!is.na(qaqc_file)){
     #TIMESTAMP_in <- as_datetime(d2$DateTime,tz = input_file_tz)
-    d2$TIMESTAMP <- with_tz(TIMESTAMP_in,tz = local_tzone)
+    d2$TIMESTAMP <- with_tz(TIMESTAMP_in,tz = "UTC") #NA
 
     #d1 <- d1[which(d1$TIMESTAMP > d2$TIMESTAMP[nrow(d2)] | d1$TIMESTAMP < d2$TIMESTAMP[1]), ]
 
@@ -355,7 +355,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
     d1 <- catdata
 
     TIMESTAMP_in <- as_datetime(d1$DateTime,tz = input_file_tz)
-    d1$TIMESTAMP <- with_tz(TIMESTAMP_in,tz = local_tzone)
+    d1$TIMESTAMP <- with_tz(TIMESTAMP_in,tz = "UTC")
 
     d <-  data.frame(TIMESTAMP = d1$DateTime, 
                      wtr_1 = d1$ThermistorTemp_C_1, wtr_2 = d1$ThermistorTemp_C_2,
@@ -398,27 +398,27 @@ temp_oxy_chla_qaqc <- function(realtime_file,
            hour = as.numeric(hour)) %>%
     dplyr::mutate(day = ifelse(as.numeric(day) < 10, paste0("0",day),day),
            hour = ifelse(as.numeric(hour) < 10, paste0("0",hour),hour)) %>%
-    dplyr::mutate(timestamp = as_datetime(paste0(year,"-",month,"-",day," ",hour,":00:00"),tz = local_tzone)) %>%
+    dplyr::mutate(timestamp = as_datetime(paste0(year,"-",month,"-",day," ",hour,":00:00"),tz = "UTC")) %>%
     dplyr::arrange(timestamp)
 
 
   d_therm <- d %>%
-    dplyr::select(timestamp, wtr_1, wtr_2, wtr_3, wtr_4, wtr_5, wtr_6,
+    dplyr::select(timestamp, wtr_3, wtr_4, wtr_5, wtr_6, #dropping wtr_1, wtr_2
            wtr_7,wtr_8, wtr_9, wtr_10, wtr_11, wtr_12, wtr_13) %>%
     dplyr::rename(
-           "1.0" = wtr_1,
-           "2.0" = wtr_2,
-           "3.0" = wtr_3,
-           "4.0" = wtr_4,
-           "5.0" = wtr_5,
-           "6.0" = wtr_6,
-           "7.0" = wtr_7,
-           "8.0" = wtr_8,
-           "9.0" = wtr_9,
-           "10.0" = wtr_10,
-           "11.0" = wtr_11,
-           "12.0" = wtr_12,
-           "13.0" = wtr_13) %>%
+           #"1.0" = wtr_1,
+           #"2.0" = wtr_2,
+           "1.0" = wtr_3,
+           "2.0" = wtr_4,
+           "3.0" = wtr_5,
+           "4.0" = wtr_6,
+           "5.0" = wtr_7,
+           "6.0" = wtr_8,
+           "7.0" = wtr_9,
+           "8.0" = wtr_10,
+           "9.0" = wtr_11,
+           "10.0" = wtr_12,
+           "11.0" = wtr_13) %>%
     tidyr::pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     dplyr::mutate(variable = "temperature",
            method = "thermistor",
@@ -427,8 +427,8 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d_do_temp <- d %>%
     dplyr::select(timestamp, wtr_6_do, wtr_13_do) %>%
-    dplyr::rename("6.0" = wtr_6_do,
-           "13.0" = wtr_13_do) %>%
+    dplyr::rename("4.0" = wtr_6_do,
+           "11.0" = wtr_13_do) %>%
     tidyr::pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     dplyr::mutate(variable = "temperature",
            method = "do_sensor",
@@ -436,7 +436,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d_exo_temp <- d %>%
     dplyr::select(timestamp, wtr_1_5_exo) %>%
-    rename("1.5" = wtr_1_5_exo) %>%
+    rename("1.0" = wtr_1_5_exo) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "temperature",
            method = "exo_sensor",
@@ -444,8 +444,8 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d_do_do <- d %>%
     dplyr::select(timestamp, doobs_6, doobs_13) %>%
-    rename("6.0" = doobs_6,
-           "13.0" = doobs_13) %>%
+    rename("4.0" = doobs_6,
+           "11.0" = doobs_13) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "oxygen",
            method = "do_sensor",
@@ -453,7 +453,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d_exo_do <- d %>%
     dplyr::select(timestamp, doobs_1_5) %>%
-    rename("1.5" = doobs_1_5) %>%
+    rename("1.0" = doobs_1_5) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "oxygen",
            method = "exo_sensor",
@@ -461,7 +461,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d_exo_fdom <- d %>%
     dplyr::select(timestamp, fDOM_1_5) %>%
-    rename("1.5" = fDOM_1_5) %>%
+    rename("1.0" = fDOM_1_5) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "fdom",
            method = "exo_sensor",
@@ -469,7 +469,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d_exo_chla <- d %>%
     dplyr::select(timestamp, Chla_1_5) %>%
-    rename("1.5" = Chla_1_5) %>%
+    rename("1.0" = Chla_1_5) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "chla",
            method = "exo_sensor",
@@ -477,7 +477,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d_exo_bgapc <- d %>%
     dplyr::select(timestamp, bgapc_1_5) %>%
-    rename("1.5" = bgapc_1_5) %>%
+    rename("1.0" = bgapc_1_5) %>%
     pivot_longer(cols = -timestamp, names_to = "depth", values_to = "value") %>%
     mutate(variable = "bgapc",
            method = "exo_sensor",
@@ -486,7 +486,7 @@ temp_oxy_chla_qaqc <- function(realtime_file,
   if(config$variable_obsevation_depths == TRUE){
 
     d_depth <- d %>% mutate(wtr_surface = depth_1_5 - 0.5 - 0.9,
-                            wtr_1 = depth_1_5,
+                            wtr_1 = depth_1_5 - 0.5,
                             wtr_2 = depth_1_5 + 0.5,
                             wtr_3 = depth_1_5 + 2.5,
                             wtr_4 = depth_1_5 + 2.5,
@@ -508,26 +508,26 @@ temp_oxy_chla_qaqc <- function(realtime_file,
                             doobs_13 = depth_1_5 + 11.5,
                             fDOM_1 = depth_1_5,
                             bgapc_1 = depth_1_5) %>%
-      dplyr::select(-c(depth_1, day,year, hour, month))
+      dplyr::select(-c(depth_1_5, day,year, hour, month))
 
 
     d_therm_depth <- d_depth %>%
       dplyr::select(timestamp, wtr_surface, wtr_1, wtr_2, wtr_3, wtr_4, wtr_5, wtr_6,
              wtr_7,wtr_8, wtr_9, wtr_10, wtr_11, wtr_12, wtr_13) %>%
-      rename("0.0" = wtr_surface,
-             "1.0" = wtr_1,
-             "2.0" = wtr_2,
-             "3.0" = wtr_3,
-             "4.0" = wtr_4,
-             "5.0" = wtr_5,
-             "6.0" = wtr_6,
-             "7.0" = wtr_7,
-             "8.0" = wtr_8,
-             "9.0" = wtr_9,
-             "10.0" = wtr_10,
-             "11.0" = wtr_11,
-             "12.0" = wtr_12,
-             "13.0" = wtr_13) %>%
+      rename("NA" = wtr_surface, #what us wtr_surface?
+             "NA" = wtr_1,
+             "NA" = wtr_2,
+             "1.0" = wtr_3,
+             "2.0" = wtr_4,
+             "3.0" = wtr_5,
+             "4.0" = wtr_6,
+             "5.0" = wtr_7,
+             "6.0" = wtr_8,
+             "7.0" = wtr_9,
+             "8.0" = wtr_10,
+             "9.0" = wtr_11,
+             "10.0" = wtr_12,
+             "11.0" = wtr_13) %>%
       pivot_longer(cols = -timestamp, names_to = "depth", values_to = "depth_exo") %>%
       mutate(variable = "temperature",
              method = "thermistor",
@@ -655,7 +655,8 @@ temp_oxy_chla_qaqc <- function(realtime_file,
 
   d <- d %>% mutate(depth = depth)
 
-
+#drop wtr_1 and wtr_2
+  d <- d[d$depth!="wtr_1" & d$depth!="wtr_2",]
 
   # write to output file
   return(d)

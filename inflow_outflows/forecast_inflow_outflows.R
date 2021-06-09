@@ -9,17 +9,17 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
 
   curr_all_days <- NULL
 
-  noaa_met_nc <- ncdf4::nc_open(forecast_files[1])
+  noaa_met_nc <- ncdf4::nc_open(forecast_files[18]) #paste0(noaa_forecast_path,"/not_debiased/NOAAGEFS_1hr_fcre_2021-03-15T12_2021-03-31T12_ens29.nc")
   noaa_met_time <- ncdf4::ncvar_get(noaa_met_nc, "time")
   origin <- stringr::str_sub(ncdf4::ncatt_get(noaa_met_nc, "time")$units, 13, 28) 
   origin <- lubridate::ymd_hm(origin)  
   noaa_met_time <- origin + lubridate::hours(noaa_met_time)
-  #AirTemp_n <- ncdf4::ncvar_get(noaa_met_nc, "air_temperature")
-  #Rain_n <- ncdf4::ncvar_get(noaa_met_nc, "precipitation_flux")
-  #Shortwave_n = ncdf4::ncvar_get(noaa_met_nc, "surface_downwelling_shortwave_flux_in_air")
-  #Longwave_n = ncdf4::ncvar_get(noaa_met_nc, "surface_downwelling_longwave_flux_in_air")
-  #Wind_n = ncdf4::ncvar_get(noaa_met_nc, "wind_speed")
-  
+  # AirTemp_n <- ncdf4::ncvar_get(noaa_met_nc, "air_temperature")
+  # Rain_n <- ncdf4::ncvar_get(noaa_met_nc, "precipitation_flux")
+  # Shortwave_n = ncdf4::ncvar_get(noaa_met_nc, "surface_downwelling_shortwave_flux_in_air")
+  # Longwave_n = ncdf4::ncvar_get(noaa_met_nc, "surface_downwelling_longwave_flux_in_air")
+  # Wind_n = ncdf4::ncvar_get(noaa_met_nc, "wind_speed")
+
   
   obs_met_nc <- ncdf4::nc_open(obs_met_file)
   obs_met_time <- ncdf4::ncvar_get(obs_met_nc, "time")
@@ -28,10 +28,10 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   obs_met_time <- origin + lubridate::hours(obs_met_time)
   AirTemp <- ncdf4::ncvar_get(obs_met_nc, "air_temperature")
   Rain <- ncdf4::ncvar_get(obs_met_nc, "precipitation_flux")
-  #Shortwave = ncdf4::ncvar_get(obs_met_nc, "surface_downwelling_shortwave_flux_in_air")
-  #Longwave = ncdf4::ncvar_get(obs_met_nc, "surface_downwelling_longwave_flux_in_air")
-  #Wind = ncdf4::ncvar_get(obs_met_nc, "wind_speed")
-  
+  # Shortwave = ncdf4::ncvar_get(obs_met_nc, "surface_downwelling_shortwave_flux_in_air")
+  # Longwave = ncdf4::ncvar_get(obs_met_nc, "surface_downwelling_longwave_flux_in_air")
+  # Wind = ncdf4::ncvar_get(obs_met_nc, "wind_speed")
+
   run_date <- lubridate::as_date(noaa_met_time[1])
   run_cycle <- lubridate::hour(noaa_met_time[1])
   if(run_cycle < 10){run_cycle <- paste0("0",run_cycle)}
@@ -47,32 +47,32 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
   met <- tibble::tibble(time = obs_met_time,
                         AirTemp = AirTemp,
                         Rain = Rain)#,
-                        #Shortwave = Shortwave,
-                        #Longwave = Longwave,
-                        #Wind = Wind)
-  
- #noaa <- tibble::tibble(time = noaa_met_time,
+                        # Shortwave = Shortwave,
+                        # Longwave = Longwave,
+                        # Wind = Wind)
+
+ # noaa <- tibble::tibble(time = noaa_met_time,
  #                       AirTemp = AirTemp_n,
  #                       Rain = Rain_n,
  #                       Shortwave = Shortwave_n,
  #                       Longwave = Longwave_n,
  #                       Wind = Wind_n)
-  
+
 
   obs_met <- met %>% 
     dplyr::filter(time >= (noaa_met_time[1] - lubridate::days(1)) & time < noaa_met_time[1]) 
     #dplyr::filter(time %in% noaa_met_time)
   
-  #plot noaa vs obs met 
- #plot(noaa$Longwave~obs_met$Longwave, type="p", pch=16, col="darkred", xlim=c(200,410), ylim=c(200,410), ylab="noaa_longwave", xlab="met_longwave")
- #abline(0,1, lty=2)
- #plot(noaa$Shortwave~obs_met$Shortwave, type="p", pch=16, col="darkblue", xlim=c(0,1000), ylim=c(0,1000), ylab="noaa_shortwave", xlab="met_shortwave")
- #abline(0,1, lty=2)
- #plot(noaa$Wind~obs_met$Wind, type="p", pch=16, col="darkgreen", ylab="noaa_wind", xlab="met_wind")
- #abline(0,1, lty=2)
- #plot(noaa$AirTemp~obs_met$AirTemp, type="p", pch=16, col="Orange",  xlim=c(266,300), ylim=c(266,300),ylab="noaa_airtemp", xlab="met_airtemp")
- #abline(0,1, lty=2)
-  
+ #plot noaa vs obs met 
+ # plot(noaa$Longwave~obs_met$Longwave, type="p", pch=16, col="darkred", xlim=c(200,410), ylim=c(200,410), ylab="noaa_longwave", xlab="met_longwave")
+ # abline(0,1, lty=2)
+ # plot(noaa$Shortwave~obs_met$Shortwave, type="p", pch=16, col="darkblue", xlim=c(0,1000), ylim=c(0,1000), ylab="noaa_shortwave", xlab="met_shortwave")
+ # abline(0,1, lty=2)
+ # plot(noaa$Wind~obs_met$Wind, type="p", pch=16, col="darkgreen", ylab="noaa_wind", xlab="met_wind")
+ # abline(0,1, lty=2)
+ # plot(noaa$AirTemp~obs_met$AirTemp, type="p", pch=16, col="Orange",  xlim=c(266,300), ylim=c(266,300),ylab="noaa_airtemp", xlab="met_airtemp")
+ # abline(0,1, lty=2)
+
   init_flow_temp <- inflow %>%
     dplyr::filter(time == lubridate::as_date(noaa_met_time[1]) - lubridate::days(1))
   
@@ -327,8 +327,14 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
        curr_met_daily$TEMP[i] = config$future_inflow_temp_coeff[1] +
        config$future_inflow_temp_coeff[2] * curr_met_daily$AirTemp[i-1] +
        config$future_inflow_temp_coeff[3] * curr_met_daily$AirTemp_lag1[i] + temp_error[i]
-    }
+     }
+     
+     #add in oxygen data from obs file
+     oxy <- read_csv(file.path(config$qaqc_data_location,"observations_postQAQC_long.csv")) %>%
+       dplyr::filter(depth==1, variable=="oxygen") %>% dplyr::filter(date %in% as.Date(noaa_met_time))
 
+     curr_met_daily$OXY_oxy <- oxy$value
+     
      #change mdate col back to time
      curr_met_daily <- rename(curr_met_daily, time = mdate)
     
@@ -337,14 +343,14 @@ forecast_inflows_outflows <- function(inflow_obs, forecast_files, obs_met_file, 
 
     curr_met_daily <- curr_met_daily %>%
       dplyr::mutate(SALT = 0.0) %>%
-      dplyr::select(time, FLOW, TEMP, SALT, AirTemp, Rain) %>%
-      dplyr::mutate_at(dplyr::vars(c("FLOW", "TEMP", "SALT")), list(~round(., 4))) %>%
+      dplyr::select(time, FLOW, TEMP, SALT, OXY_oxy, AirTemp, Rain) %>%
+      dplyr::mutate_at(dplyr::vars(c("FLOW", "TEMP", "SALT","OXY_oxy")), list(~round(., 4))) %>%
       dplyr::mutate(type = "inflow",
                     inflow_num = 1) %>%
       slice(-1)
 
     curr_met_daily_output <- curr_met_daily %>%
-      dplyr::select(time, FLOW, TEMP) %>%
+      dplyr::select(time, FLOW, TEMP, OXY_oxy) %>%
       dplyr::mutate(type = "outflow",
                     outflow_num = 1)
 

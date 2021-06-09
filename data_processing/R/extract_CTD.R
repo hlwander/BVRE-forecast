@@ -30,8 +30,7 @@ extract_CTD <- function(fname,
                   Flag_ORP = readr::col_integer(),
                   Flag_PAR = readr::col_integer(),
                   Flag_DescRate = readr::col_integer())) %>%
-    mutate(Date = force_tz(Date, tzone = input_file_tz),
-           Date = with_tz(Date, tzone = local_tzone)) %>%
+    mutate(Date = force_tz(Date, tzone = input_file_tz)) %>%
     filter(Reservoir == "BVR" & Site == "50") %>%
     dplyr::select(Date, Depth_m, Temp_C, DO_mgL, Chla_ugL) %>%
     rename("timestamp" = Date,
@@ -44,7 +43,7 @@ extract_CTD <- function(fname,
            oxygen = config$ctd_2_exo_sensor_do[1] + config$ctd_2_exo_sensor_do[2] * oxygen) %>%
     pivot_longer(cols = c("temperature", "oxygen", "chla"), names_to = "variable", values_to = "value") %>%
     mutate(method = "ctd") %>%
-    mutate(timestamp = lubridate::as_datetime(timestamp, tz = local_tzone)) %>%
+    mutate(timestamp = lubridate::as_datetime(timestamp, tz = "UTC")) %>%
     dplyr::select(timestamp , depth, value, variable, method) 
   
   #select every 0.5m

@@ -3,7 +3,7 @@
    max_layers = 90
    min_layer_vol = 0.5
    min_layer_thick = 0.15
-   max_layer_thick = 1
+   max_layer_thick = .33
    density_model = 1
    non_avg = .true.
 /
@@ -45,7 +45,7 @@
 &init_profiles
    lake_depth = 13.5
    num_depths = 12
-   the_depths = 0.1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+   the_depths = 0.1, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11
    the_temps = 21.53, 20.73, 19.98, 17.73, 14.29, 11.72, 9.697, 8.521, 7.854, 7.333, 6.908, 6.854
    the_sals = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
    num_wq_vars = 0
@@ -125,7 +125,7 @@
    zone_heights = 6.7, 13.3
    sed_heat_Ksoil = 1.8, 1.8
    sed_temp_depth = 0.2, 0.2
-   sed_temp_mean = 6.7121, 11.018
-   sed_temp_amplitude = 4, 10
+   sed_temp_mean = 7.5, 15!6.7121, 11.018
+   sed_temp_amplitude = 0, 4!4, 10
    sed_temp_peak_doy = 270, 270
 /

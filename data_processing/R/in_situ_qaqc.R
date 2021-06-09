@@ -55,13 +55,13 @@ in_situ_qaqc <- function(insitu_obs_fname,
   }
 
   #make hour forecast hour
-  d <- d %>%   dplyr::mutate(hour = 7) 
+  #d <- d %>%   dplyr::mutate(hour = 7) 
 
-  first_day <- lubridate::as_datetime(paste0(lubridate::as_date(min(d$timestamp)), " ", config$averaging_period_starting_hour))
-  first_day <- lubridate::force_tz(first_day, tzone = config$local_tzone)
+  first_day  <- lubridate::as_datetime(paste0(lubridate::as_date(min(d$timestamp)), " ", config$averaging_period_starting_hour))
+  first_day <- lubridate::force_tz(first_day, tzone = "UTC")
 
   last_day <- lubridate::as_datetime(paste0(lubridate::as_date(max(d$timestamp)), " ", config$averaging_period_starting_hour))
-  last_day <- lubridate::force_tz(last_day, tzone = config$local_tzone)
+  last_day <- lubridate::force_tz(last_day, tzone = "UTC")
 
   full_time_local <- seq(first_day, last_day, by = "1 day")
 
@@ -87,10 +87,11 @@ in_situ_qaqc <- function(insitu_obs_fname,
     if(config$averaging_period[i] == "1 hour"){
       d_curr <- d_curr %>%
       dplyr::mutate(hour = lubridate::hour(datetime)) #%>%
-     # dplyr::filter(hour == lubridate::hour(first_day))  #getting rid of this filter because I need more observations!
+      dplyr::filter(hour == lubridate::hour(first_day))  #getting rid of this filter because I need more observations!
     }else{
       d_curr <- d_curr %>%
-        dplyr::mutate(hour = 7)  #manually changing hour to 7 to match forecast time
+        dplyr::mutate(hour = NA) %>%
+        dplyr::mutate(hour = as.numeric(hour))
     }
 
     d_curr <- d_curr %>% dplyr::select(-datetime)
